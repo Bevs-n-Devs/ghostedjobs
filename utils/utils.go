@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/Bevs-n-Devs/ghostedjobs/logs"
 	"golang.org/x/crypto/bcrypt"
@@ -205,4 +206,40 @@ Returns:
 */
 func ValidateNewPassword(password, confirmPassword string) bool {
 	return password == confirmPassword
+}
+
+/*
+Checks if a session token exists in the request and returns the session token as a Cookie
+if it does. If the session token does not exist, an error is returned.
+
+Returns:
+
+- *http.Cookie: The session token as a Cookie if it exists.
+
+- error: An error if the session token does not exist.
+*/
+func CheckSessionToken(r *http.Request) (*http.Cookie, error) {
+	sessionToken, err := r.Cookie("session_token")
+	if err != nil || sessionToken.Value == "" {
+		return nil, fmt.Errorf("user not authenticated! failed to get session token: %s", err.Error())
+	}
+	return sessionToken, nil
+}
+
+/*
+Checks if a CSRF token exists in the request and returns the CSRF token as a Cookie
+if it does. If the CSRF token does not exist, an error is returned.
+
+Returns:
+
+- *http.Cookie: The CSRF token as a Cookie if it exists.
+
+- error: An error if the CSRF token does not exist.
+*/
+func CheckCSRFToken(r *http.Request) (*http.Cookie, error) {
+	csrfToken, err := r.Cookie("csrf_token")
+	if err != nil || csrfToken.Value == "" {
+		return nil, fmt.Errorf("user not authenticated! failed to get csrf token: %s", err.Error())
+	}
+	return csrfToken, nil
 }

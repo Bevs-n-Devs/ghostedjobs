@@ -26,6 +26,14 @@ func StartHTTPServer() {
 
 	// define routes
 	http.HandleFunc("/", Home)
+	http.HandleFunc("/create-account", CreateAccount)
+	http.HandleFunc("/login", LoginProfile)
+
+	// protected routes
+	http.HandleFunc("/dashboard", ProfileDashboard)
+	// http.HandleFunc("/create-review", CreateReview)
+	// http.HandleFunc("/reviews", ProfileReviews)
+	// http.HandleFunc("/logout", LogoutProfile)
 
 	// initialise port for application
 	httpPort := os.Getenv("PORT")
