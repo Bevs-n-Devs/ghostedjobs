@@ -81,7 +81,7 @@ func CheckProfileName(profileName string) bool {
 		return false // Return false on error to allow creation
 	}
 	defer rows.Close()
-	
+
 	// Check if any rows were returned
 	exists := rows.Next()
 	return exists // true if profile exists, false if it doesn't
@@ -101,7 +101,7 @@ func CheckProfileEmail(email string) bool {
 		return false // Return false on error to allow creation
 	}
 	defer rows.Close()
-	
+
 	// Check if any rows were returned
 	exists := rows.Next()
 	return exists // true if email exists, false if it doesn't
@@ -121,7 +121,7 @@ func ValidateProfilePassword(profilePassword string) bool {
 		return false // Return false on error
 	}
 	defer rows.Close()
-	
+
 	// Check if any rows were returned
 	exists := rows.Next()
 	return exists // true if password exists, false if it doesn't
@@ -287,4 +287,102 @@ func ValidateProfileCSRFTokenFromHashEmail(hashEmail, csrfToken string) (bool, e
 		return false, nil
 	}
 	return true, nil
+}
+
+func GetUserNameFromHashEmail(hashEmail string) (string, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return "", errors.New("database connection is not initialized")
+	}
+
+	var hashProfileName string
+	query := `
+	SELECT hash_profile_name
+	FROM ghostedjobs_profile
+	WHERE hash_profile_email = $1;
+	`
+
+	err := db.QueryRow(query, hashEmail).Scan(&hashProfileName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
+		return "", err
+	}
+
+	return hashProfileName, nil
+}
+
+// TODO! add the following params hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent
+// TODO: optional params - recruiterName, managerName
+
+func CreateNewReviewWithoutRecruiterAndManager(hashEmail, nameOfCompany, interactionType, reviewRating, reviewContent string) error {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return errors.New("database connection is not initialized")
+	}
+
+	// hash and encrypt review data
+	hashProfileName, err := GetUserNameFromHashEmail(hashEmail)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
+		return err
+	}
+	hashCompanyName := utils.HashData(nameOfCompany)
+	encryptCompanyName, err := utils.Encrypt([]byte(nameOfCompany))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt company name: "+err.Error())
+		return err
+	}
+	encryptReviewContent, err := utils.Encrypt([]byte(reviewContent))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt review content: "+err.Error())
+		return err
+	}
+
+	query := `
+	INSERT INTO ghostedjobs_review (
+		hash_profile_name,
+		hash_company_name,
+		encrypt_company_name,
+		interaction_type,
+		review_rating,
+		encrypt_review_content,
+		created_at
+	)
+	VALUES ( $1, $2, $3, $4, $5, $6, NOW() );
+	`
+
+	_, err = db.Exec(query, hashProfileName, hashCompanyName, encryptCompanyName, interactionType, reviewRating, encryptReviewContent)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to create new GHOSTED! jobs review: "+err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func CreateNewReviewWithRecruiterAndManager(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, recruiterName, managerName string) error {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return errors.New("database connection is not initialized")
+	}
+
+	return nil
+}
+
+func CreateNewReviewWithoutRecruiter(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, managerName string) error {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return errors.New("database connection is not initialized")
+	}
+
+	return nil
+}
+
+func CreateNewReviewWithoutManager(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, recruiterName string) error {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return errors.New("database connection is not initialized")
+	}
+
+	return nil
 }
