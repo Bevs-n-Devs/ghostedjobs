@@ -366,6 +366,55 @@ func CreateNewReviewWithRecruiterAndManager(hashEmail, nameOfCompany, reviewType
 		return errors.New("database connection is not initialized")
 	}
 
+	// hash and encrypt review data
+	hashProfileName, err := GetUserNameFromHashEmail(hashEmail)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
+		return err
+	}
+	hashCompanyName := utils.HashData(nameOfCompany)
+	encryptCompanyName, err := utils.Encrypt([]byte(nameOfCompany))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt company name: "+err.Error())
+		return err
+	}
+	encryptReviewContent, err := utils.Encrypt([]byte(reviewContent))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt review content: "+err.Error())
+		return err
+	}
+	encryptRecruiterName, err := utils.Encrypt([]byte(recruiterName))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt recruiter name: "+err.Error())
+		return err
+	}
+	encryptManagerName, err := utils.Encrypt([]byte(managerName))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt manager name: "+err.Error())
+		return err
+	}
+
+	query := `
+	INSERT INTO ghostedjobs_review (
+		hash_profile_name,
+		hash_company_name,
+		encrypt_company_name,
+		interaction_type,
+		review_rating,
+		encrypt_review_content,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		created_at
+	)
+	VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, NOW() );
+	`
+
+	_, err = db.Query(query, hashProfileName, hashCompanyName, encryptCompanyName, reviewType, reviewRating, encryptReviewContent, encryptRecruiterName, encryptManagerName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to create new GHOSTED! jobs review: "+err.Error())
+		return err
+	}
+
 	return nil
 }
 
@@ -375,6 +424,49 @@ func CreateNewReviewWithoutRecruiter(hashEmail, nameOfCompany, reviewType, revie
 		return errors.New("database connection is not initialized")
 	}
 
+	// hash and encrypt review data
+	hashProfileName, err := GetUserNameFromHashEmail(hashEmail)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
+		return err
+	}
+	hashCompanyName := utils.HashData(nameOfCompany)
+	encryptCompanyName, err := utils.Encrypt([]byte(nameOfCompany))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt company name: "+err.Error())
+		return err
+	}
+	encryptReviewContent, err := utils.Encrypt([]byte(reviewContent))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt review content: "+err.Error())
+		return err
+	}
+	encryptManagerName, err := utils.Encrypt([]byte(managerName))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt manager name: "+err.Error())
+		return err
+	}
+
+	query := `
+	INSERT INTO ghostedjobs_review (
+		hash_profile_name,
+		hash_company_name,
+		encrypt_company_name,
+		interaction_type,
+		review_rating,
+		encrypt_review_content,
+		encrypt_manager_name,
+		created_at
+	)
+	VALUES ( $1, $2, $3, $4, $5, $6, $7, NOW() );
+	`
+
+	_, err = db.Query(query, hashProfileName, hashCompanyName, encryptCompanyName, reviewType, reviewRating, encryptReviewContent, encryptManagerName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to create new GHOSTED! jobs review: "+err.Error())
+		return err
+	}
+
 	return nil
 }
 
@@ -382,6 +474,49 @@ func CreateNewReviewWithoutManager(hashEmail, nameOfCompany, reviewType, reviewR
 	if db == nil {
 		logs.Logs(logDbErr, "Database connection is not initialized")
 		return errors.New("database connection is not initialized")
+	}
+
+	// hash and encrypt review data
+	hashProfileName, err := GetUserNameFromHashEmail(hashEmail)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
+		return err
+	}
+	hashCompanyName := utils.HashData(nameOfCompany)
+	encryptCompanyName, err := utils.Encrypt([]byte(nameOfCompany))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt company name: "+err.Error())
+		return err
+	}
+	encryptReviewContent, err := utils.Encrypt([]byte(reviewContent))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt review content: "+err.Error())
+		return err
+	}
+	encryptRecruiterName, err := utils.Encrypt([]byte(recruiterName))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt recruiter name: "+err.Error())
+		return err
+	}
+
+	query := `
+	INSERT INTO ghostedjobs_review (
+		hash_profile_name,
+		hash_company_name,
+		encrypt_company_name,
+		interaction_type,
+		review_rating,
+		encrypt_review_content,
+		encrypt_recruiter_name,
+		created_at
+	)
+	VALUES ( $1, $2, $3, $4, $5, $6, $7, NOW() );
+	`
+
+	_, err = db.Query(query, hashProfileName, hashCompanyName, encryptCompanyName, reviewType, reviewRating, encryptReviewContent, encryptRecruiterName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to create new GHOSTED! jobs review: "+err.Error())
+		return err
 	}
 
 	return nil
