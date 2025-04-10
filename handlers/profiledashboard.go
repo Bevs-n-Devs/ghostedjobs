@@ -60,6 +60,19 @@ func ProfileDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	createNewReviewSessionCookie := middleware.CreateNewReviewSessionCookie(w, newSessionToken, newExpiryTime)
+	if !createNewReviewSessionCookie {
+		logs.Logs(logErr, "Error creating new review session cookie")
+		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
+		return
+	}
+	createNewReviewCSRFTokenCookie := middleware.CreateNewReviewCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
+	if !createNewReviewCSRFTokenCookie {
+		logs.Logs(logErr, "Error creating new review CSRF token cookie")
+		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
+		return
+	}
+
 	err = tmpl.Templates.ExecuteTemplate(w, "profiledashboard.html", nil)
 	if err != nil {
 		logs.Logs(logErr, "Unable to load dashboard page: "+err.Error())
