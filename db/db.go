@@ -626,3 +626,247 @@ func GetAllGhostedReviews() ([]GhostedReviews, error) {
 
 	return reviewsList, nil
 }
+
+//* SEARCH ENGINE FUNCTIONS
+
+// TODO: get reviews by hash profile name
+func GetAllReviewsByHashProfileName(hashProfileName string) ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at
+	FROM ghostedjobs_review
+		WHERE hash_profile_name = $1
+	ORDER BY created_at DESC; 
+	`
+	rows, err := db.Query(query, hashProfileName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get all GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! jobs review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+
+	return reviewsList, nil
+}
+
+// TODO: get reviews by company name
+func GetAllReviewsByCompanyName(companyName string) ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at
+	FROM ghostedjobs_review
+		WHERE hash_company_name = $1
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.Query(query, utils.HashData(companyName))
+	if err != nil {
+		logs.Logs(logDbErr, fmt.Sprintf("Failed to get GHOSTED! job reviews for given company: %s, %s", companyName, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! jobs review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+
+	// check if the company name exists in the database
+	if len(reviewsList) == 0 {
+		logs.Logs(logDbErr, "Company name does not exist in the database")
+		return nil, errors.New("company name does not exist in the database")
+	}
+
+	return reviewsList, nil
+}
+
+// TODO: get reviews by interaction type
+func GetAllReviewsByInteractionType(interactionType string) ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at
+	FROM ghostedjobs_review
+		WHERE interaction_type = $1
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.Query(query, interactionType)
+	if err != nil {
+		logs.Logs(logDbErr, fmt.Sprintf("Failed to get GHOSTED! job reviews for given interaction type: %s, %s", interactionType, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! job review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! job reviews: "+err.Error())
+		return nil, err
+	}
+
+	// check if the interaction type exists in the database
+	if len(reviewsList) == 0 {
+		logs.Logs(logDbErr, "No reviews found for this interaction type: "+interactionType)
+		return nil, errors.New("no reviews found for this interaction type: " + interactionType)
+	}
+
+	return reviewsList, nil
+}
+
+// TODO: get reviews by review rating
+func GetAllReviewsByReviewRating(reviewRating string) ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at
+	FROM ghostedjobs_review
+		WHERE review_rating = $1
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.Query(query, reviewRating)
+	if err != nil {
+		logs.Logs(logDbErr, fmt.Sprintf("Failed to get GHOSTED! job reviews for given review rating: %s, %s", reviewRating, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! job review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! job reviews: "+err.Error())
+		return nil, err
+	}
+
+	// check if the review rating exists in the database
+	if len(reviewsList) == 0 {
+		logs.Logs(logDbErr, "No reviews found for this review rating: "+reviewRating)
+		return nil, errors.New("no reviews found for this review rating: " + reviewRating)
+	}
+
+	return reviewsList, nil
+}
