@@ -23,6 +23,7 @@ func AuthenticateProfileRequest(r *http.Request) error {
 		logs.Logs(logErr, "Session token not found: "+err.Error())
 		return fmt.Errorf("session token not found: %s", err.Error())
 	}
+	logs.Logs(logInfo, "Session token: "+sessionToken.Value)
 
 	hashEmail, err := db.GetHashEmailFromSessionToken(sessionToken.Value)
 	if err != nil {

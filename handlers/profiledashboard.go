@@ -12,21 +12,22 @@ import (
 
 func ProfileDashboard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		logs.Logs(logErr, "Invalid request method: "+r.Method)
+		logs.Logs(logErr, "Invalid request method for profile dashboard: "+r.Method)
 		http.Redirect(w, r, "/#summonYourSpirit?dRequest=BAD+REQUEST+400:+Invalid+request+method", http.StatusSeeOther)
-	}
-
-	// validate authorisation request
-	err := middleware.AuthenticateProfileRequest(r)
-	if err != nil {
-		logs.Logs(logErr, "Invalid request method: "+err.Error())
-		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
-		return
 	}
 
 	sessionToken, err := utils.CheckSessionToken(r)
 	if err != nil {
-		logs.Logs(logErr, "Session token not found: "+err.Error())
+		logs.Logs(logErr, "Session token not found for profile dashboard: "+err.Error())
+		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
+		return
+	}
+	logs.Logs(logInfo, "Session token: "+sessionToken.Value)
+
+	// validate authorisation request
+	err = middleware.AuthenticateProfileRequest(r)
+	if err != nil {
+		logs.Logs(logErr, "Invalid request method for profile dashboard: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
@@ -34,14 +35,14 @@ func ProfileDashboard(w http.ResponseWriter, r *http.Request) {
 	// get hash email from session token
 	hashEmail, err := db.GetHashEmailFromSessionToken(sessionToken.Value)
 	if err != nil {
-		logs.Logs(logErr, "Session token not found: "+err.Error())
+		logs.Logs(logErr, "Session token not found for profile dashboard: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
 
 	newSessionToken, newCsrfToken, newExpiryTime, err := db.UpdateProfileSessionTokens(hashEmail)
 	if err != nil {
-		logs.Logs(logErr, "Error updating session tokens: "+err.Error())
+		logs.Logs(logErr, "Error updating session tokens for profile dashboard: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}

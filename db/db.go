@@ -169,13 +169,55 @@ func CreateNewProfile(profileName, profileEmail, profilePassword string) error {
 	return nil
 }
 
-func UpdateProfileSessionTokens(email string) (string, string, time.Time, error) {
+func AuthenticateProfile(hashProfileName, hashProfileEmail, hashProfilePassword string) (bool, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return false, errors.New("database connection is not initialized")
+	}
+
+	var (
+		dbHashProfileName     string
+		dbHashProfileEmail    string
+		dbHashProfilePassword string
+	)
+	query := `
+	SELECT hash_profile_name, hash_profile_email, hash_profile_password
+	FROM ghostedjobs_profile
+	WHERE hash_profile_name = $1
+		AND hash_profile_email = $2
+		AND hash_profile_password = $3;
+	`
+	err := db.QueryRow(query, hashProfileName, hashProfileEmail, hashProfilePassword).Scan(&dbHashProfileName, &dbHashProfileEmail, &dbHashProfilePassword)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to authenticate profile: "+err.Error())
+		return false, err
+	}
+
+	// verify user details
+	verifyProfileName := utils.VerifyHash(hashProfileName, dbHashProfileName)
+	if !verifyProfileName {
+		logs.Logs(logDbErr, "Profile name does not match")
+		return false, errors.New("profile name does not match")
+	}
+	verifyProfileEmail := utils.VerifyHash(hashProfileEmail, dbHashProfileEmail)
+	if !verifyProfileEmail {
+		logs.Logs(logDbErr, "Profile email does not match")
+		return false, errors.New("profile email does not match")
+	}
+	verifyProfilePassword := utils.VerifyHash(hashProfilePassword, dbHashProfilePassword)
+	if !verifyProfilePassword {
+		logs.Logs(logDbErr, "Profile password does not match")
+		return false, errors.New("profile password does not match")
+	}
+
+	return true, nil
+}
+
+func UpdateProfileSessionTokens(hashProfileEmail string) (string, string, time.Time, error) {
 	if db == nil {
 		logs.Logs(logDbErr, "Database connection is not initialized")
 		return "", "", time.Time{}, errors.New("database connection is not initialized")
 	}
-
-	hashProfileEmail := utils.HashData(email)
 
 	sessionToken, err := utils.GenerateToken(32)
 	if err != nil {
@@ -187,17 +229,27 @@ func UpdateProfileSessionTokens(email string) (string, string, time.Time, error)
 		logs.Logs(logDbErr, "Failed to generate CSRF token: "+err.Error())
 		return "", "", time.Time{}, err
 	}
-	expiry := time.Now().Add(30 * time.Second) // 30 seconds validity
+	expiry := time.Now().Add(5 * time.Minute) // 5 minutes validity
 
 	query := `
 	UPDATE ghostedjobs_profile 
 	SET session_token=$1, csrf_token=$2, token_expiry=$3 
 	WHERE hash_profile_email=$4;
 	`
-	_, err = db.Exec(query, sessionToken, csrfToken, expiry, hashProfileEmail)
+	result, err := db.Exec(query, sessionToken, csrfToken, expiry, hashProfileEmail)
 	if err != nil {
 		logs.Logs(logDbErr, "Failed to update session tokens: "+err.Error())
 		return "", "", time.Time{}, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get rows affected: "+err.Error())
+	} else if rowsAffected == 0 {
+		logs.Logs(logDbErr, "No rows were updated for hash email: "+hashProfileEmail)
+		return "", "", time.Time{}, errors.New("no profile found with the provided email")
+	} else {
+		logs.Logs(logDb, "Updated session tokens for "+fmt.Sprintf("%d", rowsAffected)+" rows")
 	}
 
 	logs.Logs(logDb, "Session tokens updated successfully")
@@ -227,6 +279,8 @@ func GetHashEmailFromSessionToken(sessionToken string) (string, error) {
 		logs.Logs(logDbErr, "Failed to get session token: "+err.Error())
 		return "", err
 	}
+
+	logs.Logs(logDb, "Hash email retrieved successfully: "+hashEmail)
 
 	return hashEmail, nil
 }
@@ -258,7 +312,7 @@ func ValidateProfileSessionTokenFromHashEmail(hashEmail, sessionToken string) (b
 
 	// compare the input session token with DB session token
 	if sessionToken != dbSessionToken {
-		logs.Logs(logDbErr, "Invalid session token")
+		logs.Logs(logDbErr, "Invalid session token. Expected: "+dbSessionToken+", Got: "+sessionToken)
 		return false, nil
 	}
 	return true, nil
@@ -310,9 +364,6 @@ func GetUserNameFromHashEmail(hashEmail string) (string, error) {
 
 	return hashProfileName, nil
 }
-
-// TODO! add the following params hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent
-// TODO: optional params - recruiterName, managerName
 
 func CreateNewReviewWithoutRecruiterAndManager(hashEmail, nameOfCompany, interactionType, reviewRating, reviewContent string) error {
 	if db == nil {

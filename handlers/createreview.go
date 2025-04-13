@@ -12,35 +12,35 @@ import (
 
 func CreateReview(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		logs.Logs(logErr, fmt.Sprintf("Invalid request method: %s. Redirecting back to profile login", r.Method))
+		logs.Logs(logErr, fmt.Sprintf("Invalid request method for create review page: %s. Redirecting back to profile login", r.Method))
 		http.Redirect(w, r, "/#summonYourSpirit?dRequest=BAD+REQUEST+400:+Invalid+request+method", http.StatusSeeOther)
 		return
 	}
 
 	err := middleware.AuthenticateProfileRequest(r)
 	if err != nil {
-		logs.Logs(logErr, "Error authenticating profile: "+err.Error())
+		logs.Logs(logErr, "Error authenticating profile for create review page: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
 
 	sessionToken, err := utils.CheckSessionToken(r)
 	if err != nil {
-		logs.Logs(logErr, "Error checking session token: "+err.Error())
+		logs.Logs(logErr, "Error checking session token for create review page: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
 
 	profieEmail, err := db.GetHashEmailFromSessionToken(sessionToken.Value)
 	if err != nil {
-		logs.Logs(logErr, "Error getting hash email from session token: "+err.Error())
+		logs.Logs(logErr, "Error getting hash email from session token for create review page: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
 
 	newSessionToken, newCsrfToken, newExpiryTime, err := db.UpdateProfileSessionTokens(profieEmail)
 	if err != nil {
-		logs.Logs(logErr, "Error updating profile session tokens: "+err.Error())
+		logs.Logs(logErr, "Error updating profile session tokens for create review page: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
@@ -55,7 +55,20 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 	}
 	createProfileDashboardCSRFTokenCookie := middleware.ProfileDashboardCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
 	if !createProfileDashboardCSRFTokenCookie {
-		logs.Logs(logErr, "Error creating profile dashboard csrf token cookie")
+		logs.Logs(logErr, "Error creating profile dashboard CSRF token cookie")
+		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
+		return
+	}
+
+	createNewReviewSessionCookie := middleware.CreateNewReviewSessionCookie(w, newSessionToken, newExpiryTime)
+	if !createNewReviewSessionCookie {
+		logs.Logs(logErr, "Error creating new review session cookie")
+		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
+		return
+	}
+	createNewReviewCSRFTokenCookie := middleware.CreateNewReviewCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
+	if !createNewReviewCSRFTokenCookie {
+		logs.Logs(logErr, "Error creating new review CSRF token cookie")
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}

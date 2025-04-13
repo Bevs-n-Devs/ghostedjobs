@@ -6,26 +6,28 @@ import (
 )
 
 func ProfileDashboardSessionCookie(w http.ResponseWriter, sessionToken string, expiryTime time.Time) bool {
-	http.SetCookie(w, &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
-		Expires:  expiryTime.Add(5 * time.Minute),
+		Expires:  expiryTime,
 		HttpOnly: true,
 		Path:     "/dashboard",
 		SameSite: http.SameSiteStrictMode,
-	})
+	}
+	http.SetCookie(w, cookie)
 	return true
 }
 
 func ProfileDashboardCSRFTokenCookie(w http.ResponseWriter, csrfToken string, expiryTime time.Time) bool {
-	http.SetCookie(w, &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     "csrf_token",
 		Value:    csrfToken,
-		Expires:  expiryTime.Add(5 * time.Minute),
+		Expires:  expiryTime,
 		HttpOnly: false,
 		Path:     "/dashboard",
 		SameSite: http.SameSiteStrictMode,
-	})
+	}
+	http.SetCookie(w, cookie)
 	return true
 }
 
