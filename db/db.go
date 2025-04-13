@@ -572,3 +572,57 @@ func CreateNewReviewWithoutManager(hashEmail, nameOfCompany, reviewType, reviewR
 
 	return nil
 }
+
+func GetAllGhostedReviews() ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at
+	FROM ghostedjobs_review
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.Query(query)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get all GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! jobs review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+
+	return reviewsList, nil
+}
