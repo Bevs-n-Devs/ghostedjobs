@@ -30,15 +30,14 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
-
-	profieEmail, err := db.GetHashEmailFromSessionToken(sessionToken.Value)
+	hashEmail, err := db.GetHashEmailFromSessionToken(sessionToken.Value)
 	if err != nil {
 		logs.Logs(logErr, "Error getting hash email from session token for create review page: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
 
-	newSessionToken, newCsrfToken, newExpiryTime, err := db.UpdateProfileSessionTokens(profieEmail)
+	newSessionToken, newCsrfToken, newExpiryTime, err := db.UpdateProfileSessionTokens(hashEmail)
 	if err != nil {
 		logs.Logs(logErr, "Error updating profile session tokens for create review page: "+err.Error())
 		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
@@ -73,6 +72,19 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	createViewReviewSessionCookie := middleware.ViewReviewSessionCookie(w, newSessionToken, newExpiryTime)
+	if !createViewReviewSessionCookie {
+		logs.Logs(logErr, "Error creating view review session cookie")
+		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
+		return
+	}
+	createViewReviewCSRFTokenCookie := middleware.ViewReviewCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
+	if !createViewReviewCSRFTokenCookie {
+		logs.Logs(logErr, "Error creating view review CSRF token cookie")
+		http.Redirect(w, r, "/#summonYourSpirit?authenticationError=UNAUTHORIZED+401:+Error+authenticating+profile", http.StatusSeeOther)
+		return
+	}
+
 	// get form data
 	err = r.ParseForm()
 	if err != nil {
@@ -89,9 +101,16 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 	reviewRating := r.FormValue("reviewRating")
 	reviewContent := r.FormValue("reviewContent")
 
+	encryptProfileName, err := db.GetEncryptedProfileNameFromHashEmail(hashEmail)
+	if err != nil {
+		logs.Logs(logErr, "Error getting encrypted profile name from hash email: "+err.Error())
+		http.Error(w, "Error getting encrypted profile name from hash email: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	// save data if no recruiterName AND no managerName is provided
 	if recruiterName == "" && managerName == "" {
-		err = db.CreateNewReviewWithoutRecruiterAndManager(profieEmail, companyName, interactionType, reviewRating, reviewContent)
+		err = db.CreateNewReviewWithoutRecruiterAndManager(hashEmail, companyName, interactionType, reviewRating, reviewContent, encryptProfileName)
 		if err != nil {
 			logs.Logs(logErr, "Error creating new review without recruiter and manager: "+err.Error())
 			http.Error(w, "Error creating new review: "+err.Error(), http.StatusInternalServerError)
@@ -105,7 +124,7 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 
 	// save data if no recruiterName is provided
 	if recruiterName == "" && managerName != "" {
-		err = db.CreateNewReviewWithoutRecruiter(profieEmail, companyName, interactionType, reviewRating, reviewContent, managerName)
+		err = db.CreateNewReviewWithoutRecruiter(hashEmail, companyName, interactionType, reviewRating, reviewContent, managerName, encryptProfileName)
 		if err != nil {
 			logs.Logs(logErr, "Error creating new review without recruiter: "+err.Error())
 			http.Error(w, "Error creating new review: "+err.Error(), http.StatusInternalServerError)
@@ -119,7 +138,7 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 
 	// save data if no managerName is provided
 	if recruiterName != "" && managerName == "" {
-		err = db.CreateNewReviewWithoutManager(profieEmail, companyName, interactionType, reviewRating, reviewContent, recruiterName)
+		err = db.CreateNewReviewWithoutManager(hashEmail, companyName, interactionType, reviewRating, reviewContent, recruiterName, encryptProfileName)
 		if err != nil {
 			logs.Logs(logErr, "Error creating new review without manager: "+err.Error())
 			http.Error(w, "Error creating new review: "+err.Error(), http.StatusInternalServerError)
@@ -132,7 +151,7 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// save data if both recruiterName and managerName are provided
-	err = db.CreateNewReviewWithRecruiterAndManager(profieEmail, companyName, interactionType, reviewRating, reviewContent, recruiterName, managerName)
+	err = db.CreateNewReviewWithRecruiterAndManager(hashEmail, companyName, interactionType, reviewRating, reviewContent, recruiterName, managerName, encryptProfileName)
 	if err != nil {
 		logs.Logs(logErr, "Error creating new review with recruiter and manager: "+err.Error())
 		http.Error(w, "Error creating new review: "+err.Error(), http.StatusInternalServerError)

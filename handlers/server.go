@@ -32,7 +32,7 @@ func StartHTTPServer() {
 	// protected routes
 	http.HandleFunc("/dashboard", ProfileDashboard)
 	http.HandleFunc("/create-review", CreateReview)
-	// http.HandleFunc("/reviews", ProfileReviews)
+	http.HandleFunc("/reviews", ProfileReviews)
 	// http.HandleFunc("/logout", LogoutProfile)
 
 	// initialise port for application

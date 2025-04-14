@@ -59,7 +59,7 @@ func ViewReviewSessionCookie(w http.ResponseWriter, sessionToken string, expiryT
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
-		Expires:  expiryTime.Add(5 * time.Minute),
+		Expires:  expiryTime,
 		HttpOnly: true,
 		Path:     "/reviews",
 		SameSite: http.SameSiteStrictMode,
@@ -71,7 +71,7 @@ func ViewReviewCSRFTokenCookie(w http.ResponseWriter, csrfToken string, expiryTi
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf_token",
 		Value:    csrfToken,
-		Expires:  expiryTime.Add(5 * time.Minute),
+		Expires:  expiryTime,
 		HttpOnly: false,
 		Path:     "/reviews",
 		SameSite: http.SameSiteStrictMode,

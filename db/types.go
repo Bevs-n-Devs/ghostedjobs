@@ -23,4 +23,5 @@ type GhostedReviews struct {
 	ReviewRating    string `json:"review_rating"`
 	ReviewContent   []byte `json:"review_content"`
 	CreatedAt       string `json:"created_at"`
+	ProfileName     []byte `json:"profile_name"`
 }

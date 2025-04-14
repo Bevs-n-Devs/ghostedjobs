@@ -3670,3 +3670,8 @@
 			}
 
 	}
+
+/* Add this to your CSS */
+#profileReview {
+	scroll-behavior: smooth;
+  }
