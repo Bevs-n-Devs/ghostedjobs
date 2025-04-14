@@ -169,13 +169,55 @@ func CreateNewProfile(profileName, profileEmail, profilePassword string) error {
 	return nil
 }
 
-func UpdateProfileSessionTokens(email string) (string, string, time.Time, error) {
+func AuthenticateProfile(hashProfileName, hashProfileEmail, hashProfilePassword string) (bool, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return false, errors.New("database connection is not initialized")
+	}
+
+	var (
+		dbHashProfileName     string
+		dbHashProfileEmail    string
+		dbHashProfilePassword string
+	)
+	query := `
+	SELECT hash_profile_name, hash_profile_email, hash_profile_password
+	FROM ghostedjobs_profile
+	WHERE hash_profile_name = $1
+		AND hash_profile_email = $2
+		AND hash_profile_password = $3;
+	`
+	err := db.QueryRow(query, hashProfileName, hashProfileEmail, hashProfilePassword).Scan(&dbHashProfileName, &dbHashProfileEmail, &dbHashProfilePassword)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to authenticate profile: "+err.Error())
+		return false, err
+	}
+
+	// verify user details
+	verifyProfileName := utils.VerifyHash(hashProfileName, dbHashProfileName)
+	if !verifyProfileName {
+		logs.Logs(logDbErr, "Profile name does not match")
+		return false, errors.New("profile name does not match")
+	}
+	verifyProfileEmail := utils.VerifyHash(hashProfileEmail, dbHashProfileEmail)
+	if !verifyProfileEmail {
+		logs.Logs(logDbErr, "Profile email does not match")
+		return false, errors.New("profile email does not match")
+	}
+	verifyProfilePassword := utils.VerifyHash(hashProfilePassword, dbHashProfilePassword)
+	if !verifyProfilePassword {
+		logs.Logs(logDbErr, "Profile password does not match")
+		return false, errors.New("profile password does not match")
+	}
+
+	return true, nil
+}
+
+func UpdateProfileSessionTokens(hashProfileEmail string) (string, string, time.Time, error) {
 	if db == nil {
 		logs.Logs(logDbErr, "Database connection is not initialized")
 		return "", "", time.Time{}, errors.New("database connection is not initialized")
 	}
-
-	hashProfileEmail := utils.HashData(email)
 
 	sessionToken, err := utils.GenerateToken(32)
 	if err != nil {
@@ -187,17 +229,27 @@ func UpdateProfileSessionTokens(email string) (string, string, time.Time, error)
 		logs.Logs(logDbErr, "Failed to generate CSRF token: "+err.Error())
 		return "", "", time.Time{}, err
 	}
-	expiry := time.Now().Add(30 * time.Second) // 30 seconds validity
+	expiry := time.Now().Add(5 * time.Minute) // 5 minutes validity
 
 	query := `
 	UPDATE ghostedjobs_profile 
 	SET session_token=$1, csrf_token=$2, token_expiry=$3 
 	WHERE hash_profile_email=$4;
 	`
-	_, err = db.Exec(query, sessionToken, csrfToken, expiry, hashProfileEmail)
+	result, err := db.Exec(query, sessionToken, csrfToken, expiry, hashProfileEmail)
 	if err != nil {
 		logs.Logs(logDbErr, "Failed to update session tokens: "+err.Error())
 		return "", "", time.Time{}, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get rows affected: "+err.Error())
+	} else if rowsAffected == 0 {
+		logs.Logs(logDbErr, "No rows were updated for hash email: "+hashProfileEmail)
+		return "", "", time.Time{}, errors.New("no profile found with the provided email")
+	} else {
+		logs.Logs(logDb, "Updated session tokens for "+fmt.Sprintf("%d", rowsAffected)+" rows")
 	}
 
 	logs.Logs(logDb, "Session tokens updated successfully")
@@ -228,7 +280,37 @@ func GetHashEmailFromSessionToken(sessionToken string) (string, error) {
 		return "", err
 	}
 
+	logs.Logs(logDb, "Hash email retrieved successfully: "+hashEmail)
+
 	return hashEmail, nil
+}
+
+func GetEncryptedProfileNameFromHashEmail(hashEmail string) (string, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return "", errors.New("database connection is not initialized")
+	}
+
+	var encryptedProfileName string
+	query := `
+	SELECT encrypt_profile_name
+	FROM ghostedjobs_profile
+	WHERE hash_profile_email=$1;
+	`
+	err := db.QueryRow(query, hashEmail).Scan(&encryptedProfileName)
+
+	if err == sql.ErrNoRows {
+		logs.Logs(logDbErr, "User not found")
+		return "", errors.New("user not found")
+	}
+
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get encrypted profile name: "+err.Error())
+		return "", err
+	}
+
+	logs.Logs(logDb, "Encrypted profile name retrieved successfully")
+	return encryptedProfileName, nil
 }
 
 func ValidateProfileSessionTokenFromHashEmail(hashEmail, sessionToken string) (bool, error) {
@@ -258,7 +340,7 @@ func ValidateProfileSessionTokenFromHashEmail(hashEmail, sessionToken string) (b
 
 	// compare the input session token with DB session token
 	if sessionToken != dbSessionToken {
-		logs.Logs(logDbErr, "Invalid session token")
+		logs.Logs(logDbErr, "Invalid session token. Expected: "+dbSessionToken+", Got: "+sessionToken)
 		return false, nil
 	}
 	return true, nil
@@ -311,10 +393,7 @@ func GetUserNameFromHashEmail(hashEmail string) (string, error) {
 	return hashProfileName, nil
 }
 
-// TODO! add the following params hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent
-// TODO: optional params - recruiterName, managerName
-
-func CreateNewReviewWithoutRecruiterAndManager(hashEmail, nameOfCompany, interactionType, reviewRating, reviewContent string) error {
+func CreateNewReviewWithoutRecruiterAndManager(hashEmail, nameOfCompany, interactionType, reviewRating, reviewContent, encryptProfileName string) error {
 	if db == nil {
 		logs.Logs(logDbErr, "Database connection is not initialized")
 		return errors.New("database connection is not initialized")
@@ -346,12 +425,13 @@ func CreateNewReviewWithoutRecruiterAndManager(hashEmail, nameOfCompany, interac
 		interaction_type,
 		review_rating,
 		encrypt_review_content,
-		created_at
+		created_at,
+		encrypt_profile_name
 	)
-	VALUES ( $1, $2, $3, $4, $5, $6, NOW() );
+	VALUES ( $1, $2, $3, $4, $5, $6, NOW(), $7 );
 	`
 
-	_, err = db.Exec(query, hashProfileName, hashCompanyName, encryptCompanyName, interactionType, reviewRating, encryptReviewContent)
+	_, err = db.Exec(query, hashProfileName, hashCompanyName, encryptCompanyName, interactionType, reviewRating, encryptReviewContent, encryptProfileName)
 	if err != nil {
 		logs.Logs(logDbErr, "Failed to create new GHOSTED! jobs review: "+err.Error())
 		return err
@@ -360,29 +440,475 @@ func CreateNewReviewWithoutRecruiterAndManager(hashEmail, nameOfCompany, interac
 	return nil
 }
 
-func CreateNewReviewWithRecruiterAndManager(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, recruiterName, managerName string) error {
+func CreateNewReviewWithRecruiterAndManager(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, recruiterName, managerName, encryptProfileName string) error {
 	if db == nil {
 		logs.Logs(logDbErr, "Database connection is not initialized")
 		return errors.New("database connection is not initialized")
+	}
+
+	// hash and encrypt review data
+	hashProfileName, err := GetUserNameFromHashEmail(hashEmail)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
+		return err
+	}
+	hashCompanyName := utils.HashData(nameOfCompany)
+	encryptCompanyName, err := utils.Encrypt([]byte(nameOfCompany))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt company name: "+err.Error())
+		return err
+	}
+	encryptReviewContent, err := utils.Encrypt([]byte(reviewContent))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt review content: "+err.Error())
+		return err
+	}
+	encryptRecruiterName, err := utils.Encrypt([]byte(recruiterName))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt recruiter name: "+err.Error())
+		return err
+	}
+	encryptManagerName, err := utils.Encrypt([]byte(managerName))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt manager name: "+err.Error())
+		return err
+	}
+
+	query := `
+	INSERT INTO ghostedjobs_review (
+		hash_profile_name,
+		hash_company_name,
+		encrypt_company_name,
+		interaction_type,
+		review_rating,
+		encrypt_review_content,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		created_at,
+		encrypt_profile_name
+	)
+	VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9 );
+	`
+
+	_, err = db.Query(query, hashProfileName, hashCompanyName, encryptCompanyName, reviewType, reviewRating, encryptReviewContent, encryptRecruiterName, encryptManagerName, encryptCompanyName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to create new GHOSTED! jobs review: "+err.Error())
+		return err
 	}
 
 	return nil
 }
 
-func CreateNewReviewWithoutRecruiter(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, managerName string) error {
+func CreateNewReviewWithoutRecruiter(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, managerName, encryptedProfileName string) error {
 	if db == nil {
 		logs.Logs(logDbErr, "Database connection is not initialized")
 		return errors.New("database connection is not initialized")
+	}
+
+	// hash and encrypt review data
+	hashProfileName, err := GetUserNameFromHashEmail(hashEmail)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
+		return err
+	}
+	hashCompanyName := utils.HashData(nameOfCompany)
+	encryptCompanyName, err := utils.Encrypt([]byte(nameOfCompany))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt company name: "+err.Error())
+		return err
+	}
+	encryptReviewContent, err := utils.Encrypt([]byte(reviewContent))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt review content: "+err.Error())
+		return err
+	}
+	encryptManagerName, err := utils.Encrypt([]byte(managerName))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt manager name: "+err.Error())
+		return err
+	}
+
+	query := `
+	INSERT INTO ghostedjobs_review (
+		hash_profile_name,
+		hash_company_name,
+		encrypt_company_name,
+		interaction_type,
+		review_rating,
+		encrypt_review_content,
+		encrypt_manager_name,
+		created_at,
+		encrypt_profile_name
+	)
+	VALUES ( $1, $2, $3, $4, $5, $6, $7, NOW(), $8 );
+	`
+
+	_, err = db.Query(query, hashProfileName, hashCompanyName, encryptCompanyName, reviewType, reviewRating, encryptReviewContent, encryptManagerName, encryptedProfileName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to create new GHOSTED! jobs review: "+err.Error())
+		return err
 	}
 
 	return nil
 }
 
-func CreateNewReviewWithoutManager(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, recruiterName string) error {
+func CreateNewReviewWithoutManager(hashEmail, nameOfCompany, reviewType, reviewRating, reviewContent, recruiterName, encryptedProfileName string) error {
 	if db == nil {
 		logs.Logs(logDbErr, "Database connection is not initialized")
 		return errors.New("database connection is not initialized")
 	}
 
+	// hash and encrypt review data
+	hashProfileName, err := GetUserNameFromHashEmail(hashEmail)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
+		return err
+	}
+	hashCompanyName := utils.HashData(nameOfCompany)
+	encryptCompanyName, err := utils.Encrypt([]byte(nameOfCompany))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt company name: "+err.Error())
+		return err
+	}
+	encryptReviewContent, err := utils.Encrypt([]byte(reviewContent))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt review content: "+err.Error())
+		return err
+	}
+	encryptRecruiterName, err := utils.Encrypt([]byte(recruiterName))
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to encrypt recruiter name: "+err.Error())
+		return err
+	}
+
+	query := `
+	INSERT INTO ghostedjobs_review (
+		hash_profile_name,
+		hash_company_name,
+		encrypt_company_name,
+		interaction_type,
+		review_rating,
+		encrypt_review_content,
+		encrypt_recruiter_name,
+		created_at,
+		encrypt_profile_name
+	)
+	VALUES ( $1, $2, $3, $4, $5, $6, $7, NOW(), $8 );
+	`
+
+	_, err = db.Query(query, hashProfileName, hashCompanyName, encryptCompanyName, reviewType, reviewRating, encryptReviewContent, encryptRecruiterName, encryptedProfileName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to create new GHOSTED! jobs review: "+err.Error())
+		return err
+	}
+
 	return nil
+}
+
+func GetAllGhostedReviews() ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at,
+		encrypt_profile_name
+	FROM ghostedjobs_review
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.Query(query)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get all GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+			&review.ProfileName,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! jobs review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+
+	return reviewsList, nil
+}
+
+//* SEARCH ENGINE FUNCTIONS
+
+// TODO: get reviews by hash profile name
+func GetAllReviewsByHashProfileName(hashProfileName string) ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at,
+		encrypt_profile_name
+	FROM ghostedjobs_review
+		WHERE hash_profile_name = $1
+	ORDER BY created_at DESC; 
+	`
+	rows, err := db.Query(query, hashProfileName)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to get all GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+			&review.ProfileName,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! jobs review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+
+	return reviewsList, nil
+}
+
+// TODO: get reviews by company name
+func GetAllReviewsByCompanyName(companyName string) ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at,
+		encrypt_profile_name
+	FROM ghostedjobs_review
+		WHERE hash_company_name = $1
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.Query(query, utils.HashData(companyName))
+	if err != nil {
+		logs.Logs(logDbErr, fmt.Sprintf("Failed to get GHOSTED! job reviews for given company: %s, %s", companyName, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+			&review.ProfileName,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! jobs review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! jobs reviews: "+err.Error())
+		return nil, err
+	}
+
+	// check if the company name exists in the database
+	if len(reviewsList) == 0 {
+		logs.Logs(logDbErr, "Company name does not exist in the database")
+		return nil, errors.New("company name does not exist in the database")
+	}
+
+	return reviewsList, nil
+}
+
+// TODO: get reviews by interaction type
+func GetAllReviewsByInteractionType(interactionType string) ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at,
+		encrypt_profile_name
+	FROM ghostedjobs_review
+		WHERE interaction_type = $1
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.Query(query, interactionType)
+	if err != nil {
+		logs.Logs(logDbErr, fmt.Sprintf("Failed to get GHOSTED! job reviews for given interaction type: %s, %s", interactionType, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+			&review.ProfileName,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! job review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! job reviews: "+err.Error())
+		return nil, err
+	}
+
+	// check if the interaction type exists in the database
+	if len(reviewsList) == 0 {
+		logs.Logs(logDbErr, "No reviews found for this interaction type: "+interactionType)
+		return nil, errors.New("no reviews found for this interaction type: " + interactionType)
+	}
+
+	return reviewsList, nil
+}
+
+// TODO: get reviews by review rating
+func GetAllReviewsByReviewRating(reviewRating string) ([]GhostedReviews, error) {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	query := `
+	SELECT
+		encrypt_company_name,
+		interaction_type,
+		encrypt_recruiter_name,
+		encrypt_manager_name,
+		review_rating,
+		encrypt_review_content,
+		created_at,
+		encrypt_profile_name
+	FROM ghostedjobs_review
+		WHERE review_rating = $1
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.Query(query, reviewRating)
+	if err != nil {
+		logs.Logs(logDbErr, fmt.Sprintf("Failed to get GHOSTED! job reviews for given review rating: %s, %s", reviewRating, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviewsList []GhostedReviews
+	for rows.Next() {
+		var review GhostedReviews
+		err := rows.Scan(
+			&review.CompanyName,
+			&review.InteractionType,
+			&review.RecruiterName,
+			&review.ManagerName,
+			&review.ReviewRating,
+			&review.ReviewContent,
+			&review.CreatedAt,
+			&review.ProfileName,
+		)
+		if err != nil {
+			logs.Logs(logDbErr, "Failed to scan GHOSTED! job review: "+err.Error())
+			return nil, err
+		}
+		reviewsList = append(reviewsList, review)
+	}
+
+	// check for errors from iterating over rows
+	err = rows.Err()
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to iterate over GHOSTED! job reviews: "+err.Error())
+		return nil, err
+	}
+
+	// check if the review rating exists in the database
+	if len(reviewsList) == 0 {
+		logs.Logs(logDbErr, "No reviews found for this review rating: "+reviewRating)
+		return nil, errors.New("no reviews found for this review rating: " + reviewRating)
+	}
+
+	return reviewsList, nil
 }

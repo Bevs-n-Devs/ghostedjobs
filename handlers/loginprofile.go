@@ -3,10 +3,12 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Bevs-n-Devs/ghostedjobs/db"
 	"github.com/Bevs-n-Devs/ghostedjobs/logs"
 	"github.com/Bevs-n-Devs/ghostedjobs/middleware"
+	"github.com/Bevs-n-Devs/ghostedjobs/utils"
 )
 
 func LoginProfile(w http.ResponseWriter, r *http.Request) {
@@ -16,6 +18,7 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: get data from form to login
 	err := r.ParseForm()
 	if err != nil {
 		logs.Logs(logErr, "Error parsing form data: "+err.Error())
@@ -28,42 +31,50 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	profileEmail := r.FormValue("profileEmail")
 	profilePassword := r.FormValue("profilePassword")
 
-	// Validate the profile name, email and password
-	profileNameExists := db.CheckProfileName(profileName)
-	if !profileNameExists {
-		logs.Logs(logErr, "Profile name does not exist: "+profileName)
-		http.Redirect(w, r, "/#summonYourSpirit?error=invalid_credentials", http.StatusSeeOther)
-		return
-	}
-	profileEmailExists := db.CheckProfileEmail(profileEmail)
-	if !profileEmailExists {
-		logs.Logs(logErr, "Profile email does not exist: "+profileEmail)
-		http.Redirect(w, r, "/#summonYourSpirit?error=invalid_credentials", http.StatusSeeOther)
-		return
-	}
-	profilePasswordExists := db.ValidateProfilePassword(profilePassword)
-	if !profilePasswordExists {
-		logs.Logs(logErr, "Profile password does not exist: "+profilePassword)
-		http.Redirect(w, r, "/#summonYourSpirit?error=invalid_credentials", http.StatusSeeOther)
+	logs.Logs(logInfo, "Login attempt for profile: "+profileName+" with email: "+profileEmail)
+
+	// TODO: hash profile name, email and password
+	hashedProfileName := utils.HashData(profileName)
+	hashedProfileEmail := utils.HashData(profileEmail)
+	hashedProfilePassword := utils.HashData(profilePassword)
+
+	// TODO: validate user via AuthenticateProfile function (in db package)
+	authenticateProfile, err := db.AuthenticateProfile(hashedProfileName, hashedProfileEmail, hashedProfilePassword)
+	if err != nil {
+		logs.Logs(logErr, "Error authenticating profile: "+err.Error())
+		http.Redirect(w, r, "/#summonYourSpirit?error=Error+authenticating+profile", http.StatusSeeOther)
 		return
 	}
 
-	// Create cookies to send to user dashboard page
-	sessionToken, csrfToken, expiryTime, err := db.UpdateProfileSessionTokens(profileEmail)
+	if !authenticateProfile {
+		logs.Logs(logErr, "Profile does not exists: "+profileName)
+		http.Redirect(w, r, "/#summonYourSpirit?error=Profile+does+not+exist", http.StatusSeeOther)
+		return
+	}
+
+	// TODO: update the profile session tokens in the database
+	newSessionToken, newCsrfToken, newExpiryTime, err := db.UpdateProfileSessionTokens(hashedProfileEmail)
 	if err != nil {
 		logs.Logs(logErr, "Error updating profile session tokens: "+err.Error())
 		http.Error(w, "Error updating profile session tokens: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	createProfileDashboardSessionCookie := middleware.ProfileDashboardSessionCookie(w, sessionToken, expiryTime)
+	logs.Logs(logInfo, "Generated new session token: "+newSessionToken)
+
+	// TODO: create session tokens for login page
+	createProfileDashboardSessionCookie := middleware.ProfileDashboardSessionCookie(w, newSessionToken, newExpiryTime)
 	if !createProfileDashboardSessionCookie {
 		logs.Logs(logErr, "Error creating profile dashboard session cookie")
 		http.Error(w, "Error creating profile dashboard session cookie", http.StatusInternalServerError)
 		return
 	}
 
-	createProfileDashboardCSRFTokenCookie := middleware.ProfileDashboardCSRFTokenCookie(w, csrfToken, expiryTime)
+	// Verify the cookie was set correctly
+	cookies := w.Header()["Set-Cookie"]
+	logs.Logs(logInfo, "Set cookies: "+strings.Join(cookies, ", "))
+
+	createProfileDashboardCSRFTokenCookie := middleware.ProfileDashboardCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
 	if !createProfileDashboardCSRFTokenCookie {
 		logs.Logs(logErr, "Error creating profile dashboard CSRF token cookie")
 		http.Error(w, "Error creating profile dashboard CSRF token cookie", http.StatusInternalServerError)
@@ -71,7 +82,7 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	logs.Logs(logInfo, "Profile session and CSRF token cookies created successfully")
 
-	// Redirect user to dashboard page
+	// TODO: redirect to dashboard page if successful
 	logs.Logs(logInfo, "Redirecting user to profile dashboard page")
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }

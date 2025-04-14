@@ -7,7 +7,7 @@
 <html>
 	<head>
         
-	<title>Share Your Ghastly Experiences | Dashboard | GHOSTED!</title>
+	<title>Share Your Ghastly Experiences | GHOSTED!</title>
 
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
@@ -82,7 +82,7 @@
 					<p>
 						Click <a href="#exposingSpecters"><strong>here</strong></a> to create a review.
                         <br>
-                        Click <a href="#echoesOfTheGhosted"><strong>here</strong></a> to view reviews.
+                        Click <a href="/reviews"><strong>here</strong></a> to view reviews.
 					</p>
 					<ul class="actions">
 						<li><a href="#exposingSpecters" class="button special color1 circle icon fa-angle-right">Next</a></li>
@@ -107,7 +107,7 @@
                     Share your story here, and help others avoid being ghosted by recruiters or hiring managers. 
                     Your review can shine a light on the unseen and bring accountability to those who disappear without a trace.
                     <br><br>
-                    Click <a href=""><strong>here</strong></a> to view reviews.
+                    Click <a href="/reviews"><strong>here</strong></a> to view reviews.
 				</p>
 				<ul class="actions">
 					<li><a href="#echoesOfTheGhosted" class="button special color1 circle icon fa-angle-right">Next</a></li>
@@ -115,7 +115,7 @@
 			</div>
 			<div class="inner columns divided">
 				<div class="span-3-25">
-					<form action="" method="post">
+					<form action="/create-review" method="post">
 						<div class="field half">
 							<input style="color: #eb6b1b;" type="text" name="companyName" id="companyName" placeholder="Enter name of company..." required/>
 						</div>
@@ -181,14 +181,37 @@
 					<li><a href="#dashboard" class="button special color1 circle icon fa-angle-left">Back</a></li>
 				</ul>
 			</div>
-			<div class="inner columns aligned">
-                <form method="get" action="">
+			<div class="inner columns aligned" id="ghostedReviews">
+                <form method="get" action="/reviews">
                     <div class="span-2-75">
                         <h3 class="major">All Reviews</h3>
                         <p>
-                            click <strong><a href="">here</a></strong> to reveal all the reviews 
+                            click <strong><a href="/reviews">here</a></strong> to reveal all the reviews 
                             by yourself and others.
                         </p>
+						{{ range .Reviews }}
+							<div id="profileReview">
+								<h3>
+									{{ .CompanyName }} - {{ .InteractionType }}
+								</h3>
+								<p>
+									<strong>Recruiter:</strong> {{ .RecruiterName }}
+								</p>
+								<p>
+									<strong>Manager:</strong> {{ .ManagerName }}
+								</p>
+								<p>
+									<strong>Rating:</strong> {{ .ReviewRating }}
+								</p>
+								<p>{{ .ReviewContent }}</p>
+								<p>
+									<strong>Posted by:</strong> {{ .ProfileName }}
+								</p>
+								<p>
+									<strong>Date:</strong> {{ .CreatedAt }}
+								</p>
+							</div>
+						{{ end }}
                     </div>
                 </form>
 			</div>

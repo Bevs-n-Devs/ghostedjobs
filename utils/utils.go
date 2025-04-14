@@ -243,3 +243,19 @@ func CheckCSRFToken(r *http.Request) (*http.Cookie, error) {
 	}
 	return csrfToken, nil
 }
+
+func CheckCreateReviewSessionToken(r *http.Request) (*http.Cookie, error) {
+	sessionToken, err := r.Cookie("create_review_session_token")
+	if err != nil || sessionToken.Value == "" {
+		return nil, fmt.Errorf("user not authenticated! failed to get session token: %s", err.Error())
+	}
+	return sessionToken, nil
+}
+
+func CheckCreateReviewCSRFToken(r *http.Request) (*http.Cookie, error) {
+	csrfToken, err := r.Cookie("create_review_csrf_token")
+	if err != nil || csrfToken.Value == "" {
+		return nil, fmt.Errorf("user not authenticated! failed to get csrf token: %s", err.Error())
+	}
+	return csrfToken, nil
+}
