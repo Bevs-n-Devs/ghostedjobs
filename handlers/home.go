@@ -13,12 +13,14 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	notFoundError := r.URL.Query().Get("notFound")
 	authenticationError := r.URL.Query().Get("authenticationError")
 	internalServerError := r.URL.Query().Get("internalServerError")
+	validationError := r.URL.Query().Get("validationError")
 
 	data := ErrorMessages{
 		BadRequestError:     badRequestError,
 		NotFoundError:       notFoundError,
 		AuthenticationError: authenticationError,
 		InternalServerError: internalServerError,
+		ValidationError:     validationError,
 	}
 
 	err := tmpl.Templates.ExecuteTemplate(w, "home.html", data)

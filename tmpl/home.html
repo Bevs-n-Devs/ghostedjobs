@@ -55,6 +55,11 @@
                                         <p style="color: #312f30;">{{ .NotFoundError }}</p>
                                     </strong>
                                     {{ end }}
+                                    {{ if .ValidationError }}
+                                    <strong>
+                                        <p style="color: #312f30;">{{ .ValidationError }}</p>
+                                    </strong>
+                                    {{ end }}
 								</div>
 								<div class="image filtered span-1-75" data-position="25% 25%">
 									<img src="/static/images/ghosted-potrait.png" alt="" />
