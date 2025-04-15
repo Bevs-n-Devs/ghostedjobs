@@ -5,6 +5,8 @@ const (
 	logInfo   = 1
 	logWarn   = 2
 	logErr    = 3
+	ERROR1    = "You+have+been+left+in+the+dark:+"
+	ERROR2    = "You+have+been+ghosted+by+the+system:+"
 )
 
 type ViewGhostedReviews struct {
@@ -16,4 +18,14 @@ type ViewGhostedReviews struct {
 	ReviewContent   string `json:"review_content"`
 	CreatedAt       string `json:"created_at"`
 	ProfileName     string `json:"profile_name"`
+}
+
+type ErrorMessages struct {
+	// HTTP server error messages
+	BadRequestError     string
+	NotFoundError       string
+	AuthenticationError string
+	InternalServerError string
+	CookieError         string
+	ValidationError     string
 }

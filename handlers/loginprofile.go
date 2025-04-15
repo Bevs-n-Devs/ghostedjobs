@@ -14,7 +14,7 @@ import (
 func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		logs.Logs(logErr, fmt.Sprintf("Invalid request method: %s. Redirecting back to home page", r.Method))
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/?badRequest=%sInvalid+request+method", ERROR2), http.StatusSeeOther)
 		return
 	}
 
@@ -22,7 +22,7 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		logs.Logs(logErr, "Error parsing form data: "+err.Error())
-		http.Error(w, "Error parsing form data: "+err.Error(), http.StatusInternalServerError)
+		http.Redirect(w, r, fmt.Sprintf("/?internalServerError=%sError+parsing+form+data", ERROR2), http.StatusSeeOther)
 		return
 	}
 
@@ -30,8 +30,6 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	profileName := r.FormValue("profileName")
 	profileEmail := r.FormValue("profileEmail")
 	profilePassword := r.FormValue("profilePassword")
-
-	logs.Logs(logInfo, "Login attempt for profile: "+profileName+" with email: "+profileEmail)
 
 	// TODO: hash profile name, email and password
 	hashedProfileName := utils.HashData(profileName)
@@ -42,13 +40,13 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	authenticateProfile, err := db.AuthenticateProfile(hashedProfileName, hashedProfileEmail, hashedProfilePassword)
 	if err != nil {
 		logs.Logs(logErr, "Error authenticating profile: "+err.Error())
-		http.Redirect(w, r, "/#summonYourSpirit?error=Error+authenticating+profile", http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%sError+authenticating+profile", ERROR1), http.StatusSeeOther)
 		return
 	}
 
 	if !authenticateProfile {
 		logs.Logs(logErr, "Profile does not exists: "+profileName)
-		http.Redirect(w, r, "/#summonYourSpirit?error=Profile+does+not+exist", http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/?notFoundError=%sProfile+does+not+exist", ERROR1), http.StatusSeeOther)
 		return
 	}
 
@@ -56,7 +54,7 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	newSessionToken, newCsrfToken, newExpiryTime, err := db.UpdateProfileSessionTokens(hashedProfileEmail)
 	if err != nil {
 		logs.Logs(logErr, "Error updating profile session tokens: "+err.Error())
-		http.Error(w, "Error updating profile session tokens: "+err.Error(), http.StatusInternalServerError)
+		http.Redirect(w, r, fmt.Sprintf("/?inernalServerError=%sError+updating+profile+session+tokens", ERROR2), http.StatusSeeOther)
 		return
 	}
 
@@ -66,7 +64,7 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	createProfileDashboardSessionCookie := middleware.ProfileDashboardSessionCookie(w, newSessionToken, newExpiryTime)
 	if !createProfileDashboardSessionCookie {
 		logs.Logs(logErr, "Error creating profile dashboard session cookie")
-		http.Error(w, "Error creating profile dashboard session cookie", http.StatusInternalServerError)
+		http.Redirect(w, r, fmt.Sprintf("/?inernalServerError=%sError+creating+profile+dashboard+session+cookie", ERROR2), http.StatusSeeOther)
 		return
 	}
 
@@ -77,7 +75,7 @@ func LoginProfile(w http.ResponseWriter, r *http.Request) {
 	createProfileDashboardCSRFTokenCookie := middleware.ProfileDashboardCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
 	if !createProfileDashboardCSRFTokenCookie {
 		logs.Logs(logErr, "Error creating profile dashboard CSRF token cookie")
-		http.Error(w, "Error creating profile dashboard CSRF token cookie", http.StatusInternalServerError)
+		http.Redirect(w, r, fmt.Sprintf("/?inernalServerError=%sError+creating+profile+dashboard+csrf+token+cookie", ERROR2), http.StatusSeeOther)
 		return
 	}
 	logs.Logs(logInfo, "Profile session and CSRF token cookies created successfully")
