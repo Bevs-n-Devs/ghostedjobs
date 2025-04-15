@@ -116,31 +116,13 @@ func ProfileReviews(w http.ResponseWriter, r *http.Request) {
 		}
 		convertedData.CompanyName = string(companyName)
 
-		// check if recruiter name is empty if so, replace with "Not Provided"
-		if getAllReviews[index].RecruiterName != nil {
-			recruiterName, err := utils.Decrypt(getAllReviews[index].RecruiterName)
-			if err != nil {
-				logs.Logs(logErr, "Error decrypting recruiter name: "+err.Error())
-				http.Redirect(w, r, "/dashboard/#reviews?error=Error+decrypting+recruiter+name", http.StatusSeeOther)
-				return
-			}
-			convertedData.RecruiterName = string(recruiterName)
-		} else {
-			convertedData.RecruiterName = "Not Provided"
+		recruiterName, err := utils.Decrypt(getAllReviews[index].RecruiterName)
+		if err != nil {
+			logs.Logs(logErr, "Error decrypting recruiter name: "+err.Error())
+			http.Redirect(w, r, "/dashboard/#reviews?error=Error+decrypting+recruiter+name", http.StatusSeeOther)
+			return
 		}
-
-		// check if manager name is empty if so, replace with "Not Provided"
-		if getAllReviews[index].ManagerName != nil {
-			managerName, err := utils.Decrypt(getAllReviews[index].ManagerName)
-			if err != nil {
-				logs.Logs(logErr, "Error decrypting manager name: "+err.Error())
-				http.Redirect(w, r, "/dashboard/#reviews?error=Error+decrypting+manager+name", http.StatusSeeOther)
-				return
-			}
-			convertedData.ManagerName = string(managerName)
-		} else {
-			convertedData.ManagerName = "Not Provided"
-		}
+		convertedData.RecruiterName = string(recruiterName)
 
 		managerName, err := utils.Decrypt(getAllReviews[index].ManagerName)
 		if err != nil {

@@ -101,59 +101,63 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 	reviewRating := r.FormValue("reviewRating")
 	reviewContent := r.FormValue("reviewContent")
 
-	encryptProfileName, err := db.GetEncryptedProfileNameFromHashEmail(hashEmail)
+	// TODO: replace empty recruiterName & managerName with "Not Provided" in database
+	if recruiterName == "" {
+		recruiterName = "Not Provided"
+	}
+	if managerName == "" {
+		managerName = "Not Provided"
+	}
+
+	// TODO: get hash profile name from database, then encrypt it - this is to enable searching
+	hashProfileName, err := db.GetUserNameFromHashEmail(hashEmail)
 	if err != nil {
-		logs.Logs(logErr, "Error getting encrypted profile name from hash email: "+err.Error())
-		http.Error(w, "Error getting encrypted profile name from hash email: "+err.Error(), http.StatusInternalServerError)
+		logs.Logs(logErr, "Error getting hash profile name from hash email: "+err.Error())
+		http.Error(w, "Error getting hash profile name from hash email: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	// save data if no recruiterName AND no managerName is provided
-	if recruiterName == "" && managerName == "" {
-		err = db.CreateNewReviewWithoutRecruiterAndManager(hashEmail, companyName, interactionType, reviewRating, reviewContent, encryptProfileName)
-		if err != nil {
-			logs.Logs(logErr, "Error creating new review without recruiter and manager: "+err.Error())
-			http.Error(w, "Error creating new review: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		logs.Logs(logInfo, "New review created successfully")
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
-
-	// save data if no recruiterName is provided
-	if recruiterName == "" && managerName != "" {
-		err = db.CreateNewReviewWithoutRecruiter(hashEmail, companyName, interactionType, reviewRating, reviewContent, managerName, encryptProfileName)
-		if err != nil {
-			logs.Logs(logErr, "Error creating new review without recruiter: "+err.Error())
-			http.Error(w, "Error creating new review: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		logs.Logs(logInfo, "New review created successfully")
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
-
-	// save data if no managerName is provided
-	if recruiterName != "" && managerName == "" {
-		err = db.CreateNewReviewWithoutManager(hashEmail, companyName, interactionType, reviewRating, reviewContent, recruiterName, encryptProfileName)
-		if err != nil {
-			logs.Logs(logErr, "Error creating new review without manager: "+err.Error())
-			http.Error(w, "Error creating new review: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		logs.Logs(logInfo, "New review created successfully")
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
-
-	// save data if both recruiterName and managerName are provided
-	err = db.CreateNewReviewWithRecruiterAndManager(hashEmail, companyName, interactionType, reviewRating, reviewContent, recruiterName, managerName, encryptProfileName)
+	encryptProfileName, err := utils.Encrypt([]byte(hashProfileName))
 	if err != nil {
-		logs.Logs(logErr, "Error creating new review with recruiter and manager: "+err.Error())
+		logs.Logs(logErr, "Error encrypting profile name: "+err.Error())
+		http.Error(w, "Error encrypting profile name: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// TODO: hash the company name in order to save - this is to enable searching
+	hashCompanyName := utils.HashData(companyName)
+
+	// TODO: encrypt data in order to save
+	encryptCompanyName, err := utils.Encrypt([]byte(companyName))
+	if err != nil {
+		logs.Logs(logErr, "Error encrypting company name: "+err.Error())
+		http.Error(w, "Error encrypting company name: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	encryptRecruiterName, err := utils.Encrypt([]byte(recruiterName))
+	if err != nil {
+		logs.Logs(logErr, "Error encrypting recruiter name: "+err.Error())
+		http.Error(w, "Error encrypting recruiter name: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	encryptManagerName, err := utils.Encrypt([]byte(managerName))
+	if err != nil {
+		logs.Logs(logErr, "Error encrypting manager name: "+err.Error())
+		http.Error(w, "Error encrypting manager name: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	encryptReviewContent, err := utils.Encrypt([]byte(reviewContent))
+	if err != nil {
+		logs.Logs(logErr, "Error encrypting review content: "+err.Error())
+		http.Error(w, "Error encrypting review content: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = db.CreateNewReview(hashProfileName, encryptProfileName, hashCompanyName, encryptCompanyName, interactionType, encryptRecruiterName, encryptManagerName, reviewRating, encryptReviewContent)
+	if err != nil {
+		logs.Logs(logErr, "Error creating new review: "+err.Error())
 		http.Error(w, "Error creating new review: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
