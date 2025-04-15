@@ -1,12 +1,22 @@
 package handlers
 
 const (
-	localPort = "9001"
-	logInfo   = 1
-	logWarn   = 2
-	logErr    = 3
-	ERROR1    = "You+have+been+left+in+the+dark:+"
-	ERROR2    = "You+have+been+ghosted+by+the+system:+"
+	localPort                  = "9001"
+	logInfo                    = 1
+	logWarn                    = 2
+	logErr                     = 3
+	ERROR1                     = "You+have+been+left+in+the+dark:+"
+	ERROR2                     = "You+have+been+ghosted+by+the+system:+"
+	invalidRequestMethod       = "Invalid+request+method"
+	errorParsingData           = "Error+parsing+form+data"
+	profileAuthenticationError = "Error+authenticating+profile"
+	profileNotFound            = "Profile+does+not+exist"
+	profileNameAlreadyExists   = "Profile+name+already+exists.+Please+create+a+different+profile+name."
+	profileEmailAlreadyExists  = "Email+already+exists.+Only+one+profile+is+permitted+for+each+email."
+	createProfileError         = "Error+creating+new+profile"
+	errorUpdatingSessionTokens = "Error+updating+profile+session+tokens"
+	sessionCookieError         = "Error+setting+session+cookie"
+	csrfCookieError            = "Error+setting+csrf+cookie"
 )
 
 type ViewGhostedReviews struct {
