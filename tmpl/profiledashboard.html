@@ -6,23 +6,22 @@
 -->
 <html>
 	<head>
-        
-	<title>Share Your Ghastly Experiences | GHOSTED!</title>
+		<title>Share Your Ghastly Experiences | GHOSTED!</title>
 
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		
-    <meta property="og:title" content="GHOSTED! Dashboard | Share Your Ghastly Experiences">
-    <meta property="og:description" content="Share your ghosted hiring experiences! Rate recruiters and hiring managers, and help others avoid being haunted by unethical hiring practices.">
-	<meta name="keywords" content="GHOSTED, Expose recruiters, bad hiring practices, Anonymous job reviews, Phantom recruiters, Job application ghosting, recruiter ghosted, manager ghosted, Recruitment transparency, hiring manager ghosted, Hiring manager reviews, bad interviews, Recruiter reviews, Ghosted job search, Avoid ghosted jobs, AkotoTech">
-    <meta property="og:image" content="/static/images/ghosted.jpg">
-    <meta property="og:url" content="https://ghostedjobs.net">
-    <meta property="og:type" content="website">
+			
+		<meta property="og:title" content="GHOSTED! Dashboard | Share Your Ghastly Experiences">
+		<meta property="og:description" content="Share your ghosted hiring experiences! Rate recruiters and hiring managers, and help others avoid being haunted by unethical hiring practices.">
+		<meta name="keywords" content="GHOSTED, Expose recruiters, bad hiring practices, Anonymous job reviews, Phantom recruiters, Job application ghosting, recruiter ghosted, manager ghosted, Recruitment transparency, hiring manager ghosted, Hiring manager reviews, bad interviews, Recruiter reviews, Ghosted job search, Avoid ghosted jobs, AkotoTech">
+		<meta property="og:image" content="/static/images/ghosted.jpg">
+		<meta property="og:url" content="https://ghostedjobs.net/dashboard">
+		<meta property="og:type" content="website">
 
-        <link rel="stylesheet" href="/static/assets/css/main.css" />
+		<link rel="stylesheet" href="/static/assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="/static/assets/css/noscript.css" /></noscript>
 		<!-- Favicon -->
-        <link rel="icon" href="/static/images/ghosted.ico" type="image/x-icon">
+		<link rel="icon" href="/static/images/ghosted.ico" type="image/x-icon">
 	</head>
 	<body>
 
@@ -82,7 +81,7 @@
 					<p>
 						Click <a href="#exposingSpecters"><strong>here</strong></a> to create a review.
                         <br>
-                        Click <a href="/reviews"><strong>here</strong></a> to view reviews.
+                        Click <a href="/reviews#ghostedReviews"><strong>here</strong></a> to view reviews.
 					</p>
 					<ul class="actions">
 						<li><a href="#exposingSpecters" class="button special color1 circle icon fa-angle-right">Next</a></li>
@@ -175,7 +174,7 @@
                     Explore the reviews and see who’s been exposed for their ghostly behavior, helping you avoid 
                     the same haunting experiences.
                     <br><br>
-                    Click <a href=""><strong>here</strong></a> to create more reviews.
+                    Click <a href="#exposingSpecters"><strong>here</strong></a> to create more reviews.
                 </p>
 				<ul class="actions">
 					<li><a href="#dashboard" class="button special color1 circle icon fa-angle-left">Back</a></li>
@@ -186,7 +185,7 @@
                     <div class="span-2-75">
                         <h3 class="major">All Reviews</h3>
                         <p>
-                            click <strong><a href="/reviews">here</a></strong> to reveal all the reviews 
+                            click <strong><a href="/reviews" style="color: #312f30;">here</a></strong> to reveal all the reviews 
                             by yourself and others.
                         </p>
 						{{ range .Reviews }}
@@ -195,20 +194,20 @@
 									{{ .CompanyName }} - {{ .InteractionType }}
 								</h3>
 								<p>
-									<strong>Recruiter:</strong> {{ .RecruiterName }}
+									<strong style="color: #312f30;">Recruiter:</strong> {{ .RecruiterName }}
 								</p>
 								<p>
-									<strong>Manager:</strong> {{ .ManagerName }}
+									<strong style="color: #312f30;">Manager:</strong> {{ .ManagerName }}
 								</p>
 								<p>
-									<strong>Rating:</strong> {{ .ReviewRating }}
+									<strong style="color: #312f30;">Rating:</strong> {{ .ReviewRating }}
 								</p>
 								<p>{{ .ReviewContent }}</p>
 								<p>
-									<strong>Posted by:</strong> {{ .ProfileName }}
+									<strong style="color: #312f30;">Posted by:</strong> {{ .ProfileName }}
 								</p>
 								<p>
-									<strong>Date:</strong> {{ .CreatedAt }}
+									<strong style="color: #312f30;">Date:</strong> {{ .CreatedAt }}
 								</p>
 							</div>
 						{{ end }}
