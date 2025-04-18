@@ -13,10 +13,17 @@ const (
 	profileNotFound            = "Profile+does+not+exist"
 	profileNameAlreadyExists   = "Profile+name+already+exists.+Please+create+a+different+profile+name."
 	profileEmailAlreadyExists  = "Email+already+exists.+Only+one+profile+is+permitted+for+each+email."
-	createProfileError         = "Error+creating+new+profile"
+	newProfileError            = "Error+creating+new+profile"
 	errorUpdatingSessionTokens = "Error+updating+profile+session+tokens"
+	sessionNotFound            = "Session+token+not+found+for+profile"
 	sessionCookieError         = "Error+setting+session+cookie"
-	csrfCookieError            = "Error+setting+csrf+cookie"
+	sessionCsrfCookieError     = "Error+setting+csrf+cookie"
+	reviewsError               = "Error+getting+all+reviews"
+	decryptCompanyNameError    = "Error+decrypting+company+name"
+	decryptRecruiterNameError  = "Error+decrypting+recruiter+name"
+	decryptManagerNameError    = "Error+decrypting+manager+name"
+	decryptReviewContentError  = "Error+decrypting+manager+name"
+	decryptProfileNameError    = "Error+decryptng+profile+name"
 )
 
 type ViewGhostedReviews struct {
@@ -38,4 +45,10 @@ type ErrorMessages struct {
 	InternalServerError string
 	CookieError         string
 	ValidationError     string
+	ReviewsError        string
+	RecruiterNameError  string
+	CompanyNameError    string
+	ManagerNameError    string
+	ReviewContentError  string
+	ProfileNameError    string
 }

@@ -40,6 +40,36 @@
 				<ul class="actions">
 					<li><a href="#hauntedHub" class="button special color1 circle icon fa-angle-right">Next</a></li>
 				</ul>
+				{{ if .ReviewsError }}
+				<strong>
+					<p style="color: #312f30;">{{ .ReviewsError }}</p>
+				</strong>
+				{{ end }}
+				{{ if .CompanyNameError }}
+				<strong>
+					<p style="color: #312f30;">{{ .CompanyNameError }}</p>
+				</strong>
+				{{ end }}
+				{{ if .RecruiterNameError }}
+				<strong>
+					<p style="color: #312f30;">{{ .RecruiterNameError }}</p>
+				</strong>
+				{{ end }}
+				{{ if .ManagerNameError }}
+				<strong>
+					<p style="color: #312f30;">{{ .ManagerNameError }}</p>
+				</strong>
+				{{ end }}
+				{{ if .ReviewContentError }}
+				<strong>
+					<p style="color: #312f30;">{{ .ReviewContentError }}</p>
+				</strong>
+				{{ end }}
+				{{ if .ProfileNameError }}
+				<strong>
+					<p style="color: #312f30;">{{ .ProfileNameError }}</p>
+				</strong>
+				{{ end }}
 			</div>
 			<div class="image filtered span-1-75" data-position="25% 25%">
 				<img src="/static/images/ghosted-potrait.png" alt="" />
