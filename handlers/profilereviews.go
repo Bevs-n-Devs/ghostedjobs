@@ -177,7 +177,7 @@ func ProfileReviews(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err = tmpl.Templates.ExecuteTemplate(w, "profiledashboard.html", showData)
+	err = tmpl.Templates.ExecuteTemplate(w, "reviews.html", showData)
 	if err != nil {
 		logs.Logs(logErr, "Unable to load dashboard page: "+err.Error())
 		http.Error(w, "Unable to load dashboard page: "+err.Error(), http.StatusInternalServerError)
