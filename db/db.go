@@ -371,26 +371,29 @@ func ValidateProfileCSRFTokenFromHashEmail(hashEmail, csrfToken string) (bool, e
 	return true, nil
 }
 
-func GetUserNameFromHashEmail(hashEmail string) (string, error) {
+func GetUserNameFromHashEmail(hashEmail string) (string, []byte, error) {
 	if db == nil {
 		logs.Logs(logDbErr, "Database connection is not initialized")
-		return "", errors.New("database connection is not initialized")
+		return "", nil, errors.New("database connection is not initialized")
 	}
 
-	var hashProfileName string
+	var (
+		hashProfileName    string
+		encryptProfileName []byte
+	)
 	query := `
-	SELECT hash_profile_name
+	SELECT hash_profile_name, encrypt_profile_name
 	FROM ghostedjobs_profile
 	WHERE hash_profile_email = $1;
 	`
 
-	err := db.QueryRow(query, hashEmail).Scan(&hashProfileName)
+	err := db.QueryRow(query, hashEmail).Scan(&hashProfileName, &encryptProfileName)
 	if err != nil {
 		logs.Logs(logDbErr, "Failed to get profile name: "+err.Error())
-		return "", err
+		return "", nil, err
 	}
 
-	return hashProfileName, nil
+	return hashProfileName, encryptProfileName, nil
 }
 
 func CreateNewReview(

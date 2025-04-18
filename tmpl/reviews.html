@@ -78,12 +78,12 @@
                 </strong>
                 {{ end }}
             </div>
+            {{ range .Reviews }}
             <div class="inner columns aligned" id="ghostedReviews">
                 <form method="get" action="/reviews">
                     <div class="span-2-75">
                         <h3 class="major">GHOSTED! Reviews</h3>
                             <div id="profileReview">
-                                {{ range .Reviews }}
                                 <h3>
                                     {{ .CompanyName }} - {{ .InteractionType }}
                                 </h3>
@@ -107,11 +107,11 @@
                                     <li><a href="#echoesOfTheGhosted" class="button special color1 circle icon fa-angle-left">Back</a></li>
                                     <li><a href="#exposingSpecters" class="button special color1 circle icon fa-angle-right">Next</a></li>
                                 </ul>
-                                {{ end }}
                             </div>
                     </div>
                 </form>
             </div>
+            {{ end }}
         </section>
 
         <section class="panel color4-alt" id="exposingSpecters">
