@@ -40,34 +40,34 @@
 				<ul class="actions">
 					<li><a href="#hauntedHub" class="button special color1 circle icon fa-angle-right">Next</a></li>
 				</ul>
-				{{ if .ReviewsError }}
+				{{ if .Errors.ReviewsError }}
 				<strong>
-					<p style="color: #312f30;">{{ .ReviewsError }}</p>
+					<p style="color: #312f30;">{{ .Errors.ReviewsError }}</p>
 				</strong>
 				{{ end }}
-				{{ if .CompanyNameError }}
+				{{ if .Errors.CompanyNameError }}
 				<strong>
-					<p style="color: #312f30;">{{ .CompanyNameError }}</p>
+					<p style="color: #312f30;">{{ .Errors.CompanyNameError }}</p>
 				</strong>
 				{{ end }}
-				{{ if .RecruiterNameError }}
+				{{ if .Errors.RecruiterNameError }}
 				<strong>
-					<p style="color: #312f30;">{{ .RecruiterNameError }}</p>
+					<p style="color: #312f30;">{{ .Errors.RecruiterNameError }}</p>
 				</strong>
 				{{ end }}
-				{{ if .ManagerNameError }}
+				{{ if .Errors.ManagerNameError }}
 				<strong>
-					<p style="color: #312f30;">{{ .ManagerNameError }}</p>
+					<p style="color: #312f30;">{{ .Errors.ManagerNameError }}</p>
 				</strong>
 				{{ end }}
-				{{ if .ReviewContentError }}
+				{{ if .Errors.ReviewContentError }}
 				<strong>
-					<p style="color: #312f30;">{{ .ReviewContentError }}</p>
+					<p style="color: #312f30;">{{ .Errors.ReviewContentError }}</p>
 				</strong>
 				{{ end }}
-				{{ if .ProfileNameError }}
+				{{ if .Errors.ProfileNameError }}
 				<strong>
-					<p style="color: #312f30;">{{ .ProfileNameError }}</p>
+					<p style="color: #312f30;">{{ .Errors.ProfileNameError }}</p>
 				</strong>
 				{{ end }}
 			</div>

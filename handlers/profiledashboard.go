@@ -48,21 +48,21 @@ func ProfileDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reviewsError := r.URL.Query().Get("reviewsError")
-	companyNameError := r.URL.Query().Get("companyNameError")
-	recruiterNameError := r.URL.Query().Get("recruiterNameError")
-	managerNameError := r.URL.Query().Get("managerNameError")
-	reviewContentError := r.URL.Query().Get("reviewContentError")
-	profileNameError := r.URL.Query().Get("profileNameError")
+	// reviewsError := r.URL.Query().Get("reviewsError")
+	// companyNameError := r.URL.Query().Get("companyNameError")
+	// recruiterNameError := r.URL.Query().Get("recruiterNameError")
+	// managerNameError := r.URL.Query().Get("managerNameError")
+	// reviewContentError := r.URL.Query().Get("reviewContentError")
+	// profileNameError := r.URL.Query().Get("profileNameError")
 
-	data := ErrorMessages{
-		ReviewsError:       reviewsError,
-		CompanyNameError:   companyNameError,
-		RecruiterNameError: recruiterNameError,
-		ManagerNameError:   managerNameError,
-		ReviewContentError: reviewContentError,
-		ProfileNameError:   profileNameError,
-	}
+	// data := ErrorMessages{
+	// 	ReviewsError:       reviewsError,
+	// 	CompanyNameError:   companyNameError,
+	// 	RecruiterNameError: recruiterNameError,
+	// 	ManagerNameError:   managerNameError,
+	// 	ReviewContentError: reviewContentError,
+	// 	ProfileNameError:   profileNameError,
+	// }
 
 	// TODO! Set cookies for each available page
 	createProfileDashboardSessionCookie := middleware.ProfileDashboardSessionCookie(w, newSessionToken, newExpiryTime)
@@ -104,7 +104,7 @@ func ProfileDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = tmpl.Templates.ExecuteTemplate(w, "profiledashboard.html", data)
+	err = tmpl.Templates.ExecuteTemplate(w, "profiledashboard.html", nil)
 	if err != nil {
 		logs.Logs(logErr, "Unable to load dashboard page: "+err.Error())
 		http.Error(w, "Unable to load dashboard page: "+err.Error(), http.StatusInternalServerError)

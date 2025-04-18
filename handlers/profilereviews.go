@@ -136,7 +136,7 @@ func ProfileReviews(w http.ResponseWriter, r *http.Request) {
 		reviewContent, err := utils.Decrypt(getAllReviews[index].ReviewContent)
 		if err != nil {
 			logs.Logs(logErr, "Error decrypting review content: "+err.Error())
-			http.Redirect(w, r, fmt.Sprintf("/dashboard?error=%s%s", ERROR2, decryptReviewContentError), http.StatusSeeOther)
+			http.Redirect(w, r, fmt.Sprintf("/dashboard?reviewContentError=%s%s", ERROR2, decryptReviewContentError), http.StatusSeeOther)
 			return
 		}
 		convertedData.ReviewContent = string(reviewContent)
@@ -144,7 +144,7 @@ func ProfileReviews(w http.ResponseWriter, r *http.Request) {
 		profileName, err := utils.Decrypt(getAllReviews[index].ProfileName)
 		if err != nil {
 			logs.Logs(logErr, "Error decrypting profile name: "+err.Error())
-			http.Redirect(w, r, fmt.Sprintf("/dashboard?error=%s%s", ERROR2, decryptProfileNameError), http.StatusSeeOther)
+			http.Redirect(w, r, fmt.Sprintf("/dashboard?profileNameError=%s%s", ERROR2, decryptProfileNameError), http.StatusSeeOther)
 			return
 		}
 		convertedData.ProfileName = string(profileName)
@@ -153,11 +153,28 @@ func ProfileReviews(w http.ResponseWriter, r *http.Request) {
 		showAllReviews = append(showAllReviews, convertedData)
 	}
 
+	// handle page errors
+	reviewsError := r.URL.Query().Get("reviewsError")
+	companyNameError := r.URL.Query().Get("companyNameError")
+	recruiterNameError := r.URL.Query().Get("recruiterNameError")
+	managerNameError := r.URL.Query().Get("managerNameError")
+	reviewContentError := r.URL.Query().Get("reviewContentError")
+	profileNameError := r.URL.Query().Get("profileNameError")
+
 	// create struct in order to pass data to template
 	showData := struct {
 		Reviews []ViewGhostedReviews
+		Errors  ErrorMessages
 	}{
 		Reviews: showAllReviews,
+		Errors: ErrorMessages{
+			ReviewsError:       reviewsError,
+			CompanyNameError:   companyNameError,
+			RecruiterNameError: recruiterNameError,
+			ManagerNameError:   managerNameError,
+			ReviewContentError: reviewContentError,
+			ProfileNameError:   profileNameError,
+		},
 	}
 
 	err = tmpl.Templates.ExecuteTemplate(w, "profiledashboard.html", showData)
