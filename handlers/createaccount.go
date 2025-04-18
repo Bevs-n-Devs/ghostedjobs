@@ -11,14 +11,14 @@ import (
 func CreateAccount(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		logs.Logs(logErr, fmt.Sprintf("Invalid request method: %s. Redirecting back to home page", r.Method))
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/?badRequest=%s%s", ERROR2, invalidRequestMethod), http.StatusSeeOther)
 		return
 	}
 
 	err := r.ParseForm()
 	if err != nil {
 		logs.Logs(logErr, "Error parsing form data: "+err.Error())
-		http.Error(w, "Error parsing form data: "+err.Error(), http.StatusInternalServerError)
+		http.Redirect(w, r, fmt.Sprintf("/?internalServerError=%s%s", ERROR2, errorParsingData), http.StatusSeeOther)
 		return
 	}
 
@@ -31,6 +31,7 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
 	profileNameExists := db.CheckProfileName(profileName)
 	if profileNameExists {
 		logs.Logs(logErr, "New profile could not be created. Profile name already exists in the database: "+profileName)
+		http.Redirect(w, r, fmt.Sprintf("/?validationError=%s%s", ERROR2, profileEmailAlreadyExists), http.StatusSeeOther)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -38,7 +39,7 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
 	profileEmailExists := db.CheckProfileEmail(userEmail)
 	if profileEmailExists {
 		logs.Logs(logErr, "New profile could not be created. Email already exists in the database: "+userEmail)
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/?validationError=%s%s", ERROR2, profileEmailAlreadyExists), http.StatusSeeOther)
 		return
 	}
 
@@ -46,7 +47,7 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
 	err = db.CreateNewProfile(profileName, userEmail, userPassword)
 	if err != nil {
 		logs.Logs(logErr, "Error creating new profile: "+err.Error())
-		http.Error(w, "Error creating new profile: "+err.Error(), http.StatusInternalServerError)
+		http.Redirect(w, r, fmt.Sprintf("/?internalServerError=%s%s", ERROR2, newProfileError), http.StatusSeeOther)
 		return
 	}
 

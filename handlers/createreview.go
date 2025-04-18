@@ -110,16 +110,10 @@ func CreateReview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: get hash profile name from database, then encrypt it - this is to enable searching
-	hashProfileName, err := db.GetUserNameFromHashEmail(hashEmail)
+	hashProfileName, encryptProfileName, err := db.GetUserNameFromHashEmail(hashEmail)
 	if err != nil {
 		logs.Logs(logErr, "Error getting hash profile name from hash email: "+err.Error())
 		http.Error(w, "Error getting hash profile name from hash email: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	encryptProfileName, err := utils.Encrypt([]byte(hashProfileName))
-	if err != nil {
-		logs.Logs(logErr, "Error encrypting profile name: "+err.Error())
-		http.Error(w, "Error encrypting profile name: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

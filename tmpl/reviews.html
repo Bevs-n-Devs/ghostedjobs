@@ -1,0 +1,244 @@
+<!DOCTYPE HTML>
+<!--
+	Ethereal by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Echos of the Ghosted | GHOSTED!</title>
+
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+			
+		<meta property="og:title" content="GHOSTED! Reviews | Expose Unethical Hiring Practices">
+		<meta property="og:description" content="Share your ghosted hiring experiences and help others avoid being haunted by unscrupulous recruiters and hiring managers. Rate and review your experiences to promote transparency and accountability in the hiring process.">
+		<meta name="keywords" content="GHOSTED, Ghosted job search, Recruiter reviews, Hiring manager reviews, Anonymous job reviews, Recruitment transparency, Job application ghosting, Bad hiring practices, Expose recruiters, Avoid ghosted jobs, Job search horror stories, Recruiter accountability, Hiring manager accountability, Job review platform, Job seeker community, Share your story, Job application experiences, Recruiter feedback, Hiring manager feedback, Job search support, Job seeker resources, Akoto Tech">
+		<meta property="og:image" content="/static/images/ghosted.jpg">
+		<meta property="og:url" content="https://ghostedjobs.net/reviews">
+		<meta property="og:type" content="website">
+
+		<link rel="stylesheet" href="/static/assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="/static/assets/css/noscript.css" /></noscript>
+		<!-- Favicon -->
+		<link rel="icon" href="/static/images/ghosted.ico" type="image/x-icon">
+	</head>
+	<body>
+
+<!-- Page Wrapper -->
+	<div id="page-wrapper">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+        <section class="panel color2-alt" id="echoesOfTheGhosted">
+            <div class="image filtered span-1-75" data-position="25% 25%">
+				<img src="/static/images/ghosted-potrait.png" alt="" />
+			</div>
+            <div class="intro color2">
+                <h2 class="major">Echoes of the Ghosted</h2>
+                <p>
+                    Discover the stories of those who’ve been left in the dark by recruiters and hiring managers. 
+                    Explore the reviews and see who’s been exposed for their ghostly behavior, helping you avoid 
+                    the same haunting experiences.
+                    <br><br>
+                    Click <a href="#exposingSpecters"><strong>here</strong></a> to create more reviews.
+                </p>
+                <ul class="actions">
+                    <li><a href="#findYourTruth" class="button special color1 circle icon fa-angle-right">Next</a></li>
+                </ul>
+                {{ if .Errors.ReviewsError }}
+                <strong>
+                    <p style="color: #312f30;">{{ .Errors.ReviewsError }}</p>
+                </strong>
+                {{ end }}
+                {{ if .Errors.CompanyNameError }}
+                <strong>
+                    <p style="color: #312f30;">{{ .Errors.CompanyNameError }}</p>
+                </strong>
+                {{ end }}
+                {{ if .Errors.RecruiterNameError }}
+                <strong>
+                    <p style="color: #312f30;">{{ .Errors.RecruiterNameError }}</p>
+                </strong>
+                {{ end }}
+                {{ if .Errors.ManagerNameError }}
+                <strong>
+                    <p style="color: #312f30;">{{ .Errors.ManagerNameError }}</p>
+                </strong>
+                {{ end }}
+                {{ if .Errors.ReviewContentError }}
+                <strong>
+                    <p style="color: #312f30;">{{ .Errors.ReviewContentError }}</p>
+                </strong>
+                {{ end }}
+                {{ if .Errors.ProfileNameError }}
+                <strong>
+                    <p style="color: #312f30;">{{ .Errors.ProfileNameError }}</p>
+                </strong>
+                {{ end }}
+            </div>
+        </section>
+
+        <section class="panel spotlight large left color4-alt" id="findYourTruth">
+            <div class="intro color4">
+                <h2 class="major">Find Your Truth</h2>
+                <p>
+                    Search for reviews by company name, interaction type, review rating, or profile name.
+                </p>
+                <form action="/login-profile" method="post">
+                    <div class="field">
+                        <label for="profileName">Profile Name</label>
+                        <input style="color: #bf6283;" type="text" name="profileName" id="profileName" placeholder="Enter your profile name..." required/>
+                    </div>
+                    <div class="field">
+                        <label for="profileEmail">Email</label>
+                        <input style="color: #bf6283;" type="email" name="profileEmail" id="profileEmail" placeholder="Enter your email..." required/>
+                    </div>
+                    <div class="field">
+                        <label for="profilePassword">Password</label>
+                        <input style="color: #bf6283;" type="password" name="profilePassword" id="profilePassword" placeholder="Enter your password..." required/>
+                    </div>
+                    <ul class="actions">
+                        <li><input type="submit" value="Login" class="button special" /></li>
+                    </ul>
+                    <ul class="actions">
+                        <li><a href="#echoesOfTheGhosted" class="button special color1 circle icon fa-angle-left">Back</a></li>
+                        <li><a href="#ghostedReviews" class="button special color1 circle icon fa-angle-right">Next</a></li>
+                    </ul>
+                </form>
+            </div>
+            <div class="gallery">
+                <div class="group span-3">
+                    <a href="/static/images/pic02.jpg" class="image filtered span-3" data-position="bottom"><img src="/static/images/pic02.jpg" alt="" /></a>
+					<a href="/static/images/ghosted.jpg" class="image filtered span-1-5" data-position="center"><img src="/static/images/ghosted.jpg" alt="" /></a>
+					<a href="/static/images/ghosted2.jpg" class="image filtered span-1-5" data-position="bottom"><img src="/static/images/ghosted2.jpg" alt="" /></a>
+                </div>
+                <a href="/static/images/ghosted-grey.jpg" class="image filtered span-2-5" data-position="top"><img src="/static/images/ghosted-grey.jpg" alt="" /></a>
+            </div>
+        </section>
+
+        <section class="panel color0-alt" id="ghostedReviews">
+            {{ range .Reviews }}
+            <div class="inner columns aligned" id="ghostedReviews">
+                <form method="get" action="/reviews">
+                    <div class="span-2-75">
+                        <h3 class="major">GHOSTED! Reviews</h3>
+                            <div id="profileReview">
+                                <h3 style="color: #eb6b1b;">
+                                    {{ .CompanyName }} - {{ .InteractionType }}
+                                </h3>
+                                <p style="color: #eb6b1b;">
+                                    <strong style="color: #312f30;">Recruiter:</strong> {{ .RecruiterName }}
+                                </p>
+                                <p style="color: #eb6b1b;">
+                                    <strong style="color: #312f30;">Manager:</strong> {{ .ManagerName }}
+                                </p>
+                                <p style="color: #eb6b1b;">
+                                    <strong style="color: #312f30;">Rating:</strong> {{ .ReviewRating }}
+                                </p>
+                                <p style="color: #eb6b1b;">{{ .ReviewContent }}</p>
+                                <p style="color: #eb6b1b;">
+                                    <strong style="color: #312f30;">Posted by:</strong> {{ .ProfileName }}
+                                </p>
+                                <p style="color: #eb6b1b;">
+                                    <strong style="color: #312f30;">Date:</strong> {{ .CreatedAt }}
+                                </p>
+                                <ul class="actions">
+                                    <li><a href="#findYourTruth" class="button special color1 circle icon fa-angle-left">Back</a></li>
+                                    <li><a href="#exposingSpecters" class="button special color1 circle icon fa-angle-right">Next</a></li>
+                                </ul>
+                            </div>
+                    </div>
+                </form>
+            </div>
+            {{ end }}
+        </section>
+
+        <section class="panel color4-alt" id="exposingSpecters">
+			<div class="intro color4">
+				<h2 class="major">Exposing the Specters</h2>
+				<p>
+					Unmask the specters who vanish after leading you through the shadows of false promises. 
+                    Share your story here, and help others avoid being ghosted by recruiters or hiring managers. 
+                    Your review can shine a light on the unseen and bring accountability to those who disappear without a trace.
+                    <br><br>
+                    Click <a href="/reviews"><strong>here</strong></a> to view reviews.
+				</p>
+				<ul class="actions">
+					<li><a href="#echoesOfTheGhosted" class="button special color1 circle icon fa-angle-left">Back</a></li>
+				</ul>
+			</div>
+			<div class="inner columns divided">
+				<div class="span-3-25">
+					<form action="/create-review" method="post">
+						<div class="field half">
+							<input style="color: #eb6b1b;" type="text" name="companyName" id="companyName" placeholder="Enter name of company..." required/>
+						</div>
+                        <div class="field half">
+                            <select id="reviewType" name="reviewType" required>
+                                <option value="">Please select who ghosted you</option>
+                                <option value="Recruiter">Recruiter</option>
+                                <option value="Hiring Manager">Hiring Manager</option>
+                                <option value="Both">Both</option>
+                            </select>
+						</div>
+                        <div class="field half">
+							<label for="recruiterName">Recruiter's Name (optional)</label>
+							<input style="color: #eb6b1b;" type="text" name="recruiterName" id="recruiterName" placeholder="Enter the recruiter's name..." />
+						</div>
+                        <div class="field half">
+							<label for="managerName">Manager's Name (optional)</label>
+							<input style="color: #eb6b1b;" type="text" name="managerName" id="managerName" placeholder="Enter the manager's name..." />
+						</div>
+						<div class="field">
+							<label for="reviewRating">Rating (1 to 5):</label>
+                            <select id="reviewRating" name="reviewRating" required>
+                                <option value="">Please select</option>
+                                <option value="1 - Spooked">1 - Spooked</option>
+                                <option value="2 - Ghosted">2 - Ghosted</option>
+                                <option value="3 - Vanished">3 - Vanished</option>
+                                <option value="4 - Haunting">4 - Haunting</option>
+                                <option value="5 - Nightmare">5 - Nightmare</option>
+                            </select>
+						</div>
+                        <div class="field">
+							<label for="reviewContent">Review:</label>
+                            <textarea style="color: #eb6b1b;" id="reviewContent" name="reviewContent" rows="5" required></textarea>
+						</div>
+						<ul class="actions">
+							<li><input type="submit" value="CREATE REVIEW" class="button special" /></li>
+						</ul>
+					</form>
+				</div>
+				<div class="span-1-5">
+					<ul class="contact-icons color1">
+						<li class="icon fa-twitter"><a href="#">coming soon!</a></li>
+						<li class="icon fa-facebook"><a href="#">coming soon!</a></li>
+						<li class="icon fa-snapchat-ghost"><a href="#">coming soon!</a></li>
+						<li class="icon fa-instagram"><a href="#">coming soon!</a></li>
+						<li class="icon fa-medium"><a href="#">coming soon!</a></li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<div class="copyright" style="color: #bf6283;">Powered by 
+			<a href="https://akototech.org"
+			   target="_blank"
+			   rel="noopener noreferrer"
+			   style="color: #eb6b1b;">
+				Akoto Tech &copy;
+			</a>
+		</div>
+
+		
+			</div>
+
+		<!-- Scripts -->
+			<script src="/static/assets/js/jquery.min.js"></script>
+			<script src="/static/assets/js/skel.min.js"></script>
+			<script src="/static/assets/js/main.js"></script>
+
+	</body>
+</html>

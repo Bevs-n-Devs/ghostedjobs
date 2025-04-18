@@ -61,6 +61,7 @@
                     Click <strong><a href="">here</a></strong> to logout.
 				</p>
                 <ul class="actions">
+                    <li><a href="#dashboard" class="button special color1 circle icon fa-angle-left">Back</a></li>
                     <li><a href="#castShadowRevealGhosts" class="button special color1 circle icon fa-angle-right">Next</a></li>
                 </ul>
 			</div>
@@ -84,6 +85,7 @@
                         Click <a href="/reviews#ghostedReviews"><strong>here</strong></a> to view reviews.
 					</p>
 					<ul class="actions">
+						<li><a href="#hauntedHub" class="button special color1 circle icon fa-angle-left">Back</a></li>
 						<li><a href="#exposingSpecters" class="button special color1 circle icon fa-angle-right">Next</a></li>
 					</ul>
 				</div>
@@ -109,6 +111,7 @@
                     Click <a href="/reviews"><strong>here</strong></a> to view reviews.
 				</p>
 				<ul class="actions">
+					<li><a href="#castShadowRevealGhosts" class="button special color1 circle icon fa-angle-left">Back</a></li>
 					<li><a href="#echoesOfTheGhosted" class="button special color1 circle icon fa-angle-right">Next</a></li>
 				</ul>
 			</div>
@@ -188,29 +191,6 @@
                             click <strong><a href="/reviews" style="color: #312f30;">here</a></strong> to reveal all the reviews 
                             by yourself and others.
                         </p>
-						{{ range .Reviews }}
-							<div id="profileReview">
-								<h3>
-									{{ .CompanyName }} - {{ .InteractionType }}
-								</h3>
-								<p>
-									<strong style="color: #312f30;">Recruiter:</strong> {{ .RecruiterName }}
-								</p>
-								<p>
-									<strong style="color: #312f30;">Manager:</strong> {{ .ManagerName }}
-								</p>
-								<p>
-									<strong style="color: #312f30;">Rating:</strong> {{ .ReviewRating }}
-								</p>
-								<p>{{ .ReviewContent }}</p>
-								<p>
-									<strong style="color: #312f30;">Posted by:</strong> {{ .ProfileName }}
-								</p>
-								<p>
-									<strong style="color: #312f30;">Date:</strong> {{ .CreatedAt }}
-								</p>
-							</div>
-						{{ end }}
                     </div>
                 </form>
 			</div>

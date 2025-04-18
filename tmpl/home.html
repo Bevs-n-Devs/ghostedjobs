@@ -35,6 +35,31 @@
 									<ul class="actions">
 										<li><a href="#ghostStories" class="button special color1 circle icon fa-angle-right">Next</a></li>
 									</ul>
+                                    {{ if .BadRequestError }}
+                                    <strong>
+                                        <p style="color: #312f30;">{{ .BadRequestError }}</p>
+                                    </strong>
+                                    {{ end }}
+                                    {{ if .InternalServerError }}
+                                    <strong>
+                                        <p style="color: #312f30;">{{ .InternalServerError }}</p>
+                                    </strong>
+                                    {{ end }}
+                                    {{ if .AuthenticationError }}
+                                    <strong>
+                                        <p style="color: #312f30;">{{ .AuthenticationError }}</p>
+                                    </strong>
+                                    {{ end }}
+                                    {{ if .NotFoundError }}
+                                    <strong>
+                                        <p style="color: #312f30;">{{ .NotFoundError }}</p>
+                                    </strong>
+                                    {{ end }}
+                                    {{ if .ValidationError }}
+                                    <strong>
+                                        <p style="color: #312f30;">{{ .ValidationError }}</p>
+                                    </strong>
+                                    {{ end }}
 								</div>
 								<div class="image filtered span-1-75" data-position="25% 25%">
 									<img src="/static/images/ghosted-potrait.png" alt="" />
@@ -58,6 +83,7 @@
                                         professionals are treated during the hiring process.
                                     </p>
                                     <ul class="actions">
+										<li><a href="#ghosted" class="button special color1 circle icon fa-angle-left">Back</a></li>
 										<li><a href="#bustingGhosts" class="button special color1 circle icon fa-angle-right">Next</a></li>
 									</ul>
 								</div>
@@ -76,6 +102,7 @@
                                         You can choose the company you interviewed with. You can specify whether it was the recruiter, hiring manager, or both, and optionally name them in the review.
                                     </p>
                                     <ul class="actions">
+                                        <li><a href="#ghostStories" class="button special color1 circle icon fa-angle-left">Back</a></li>
 										<li><a href="#summonYourSpirit" class="button special color1 circle icon fa-angle-right">Next</a></li>
 									</ul>
 								</div>
@@ -121,6 +148,7 @@
                                             <li><input type="submit" value="Login" class="button special" /></li>
                                         </ul>
                                         <ul class="actions">
+                                            <li><a href="#bustingGhosts" class="button special color1 circle icon fa-angle-left">Back</a></li>
                                             <li><a href="#createAccount" class="button special color1 circle icon fa-angle-right">Next</a></li>
                                         </ul>
                                     </form>

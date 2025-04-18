@@ -8,7 +8,22 @@ import (
 )
 
 func Home(w http.ResponseWriter, r *http.Request) {
-	err := tmpl.Templates.ExecuteTemplate(w, "home.html", nil)
+	// get any error messages
+	badRequestError := r.URL.Query().Get("badRequest")
+	notFoundError := r.URL.Query().Get("notFound")
+	authenticationError := r.URL.Query().Get("authenticationError")
+	internalServerError := r.URL.Query().Get("internalServerError")
+	validationError := r.URL.Query().Get("validationError")
+
+	data := ErrorMessages{
+		BadRequestError:     badRequestError,
+		NotFoundError:       notFoundError,
+		AuthenticationError: authenticationError,
+		InternalServerError: internalServerError,
+		ValidationError:     validationError,
+	}
+
+	err := tmpl.Templates.ExecuteTemplate(w, "home.html", data)
 	if err != nil {
 		logs.Logs(logErr, "Unable to load home page: "+err.Error())
 		http.Error(w, "Unable to load home page: "+err.Error(), http.StatusInternalServerError)
