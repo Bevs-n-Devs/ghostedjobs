@@ -11,7 +11,7 @@ import (
 	"github.com/Bevs-n-Devs/ghostedjobs/utils"
 )
 
-func SearchCompany(w http.ResponseWriter, r *http.Request) {
+func SearchInteraction(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		logs.Logs(logErr, "Invalid request method for GHOSTED! search engine: "+r.Method)
 		http.Redirect(w, r, fmt.Sprintf("/?badRequest=%s%s", ERROR2, invalidRequestMethod), http.StatusSeeOther)
@@ -98,25 +98,25 @@ func SearchCompany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// extract data
-	companyName := r.FormValue("companyName")
+	interactionType := r.FormValue("interactionType")
 
-	reviewsByCompany, err := db.GetAllReviewsByCompanyName(companyName)
+	reviewsByInteraction, err := db.GetAllReviewsByInteractionType(interactionType)
 	if err != nil {
 		logs.Logs(logErr, "Error getting reviews by company name: "+err.Error())
 		http.Redirect(w, r, fmt.Sprintf("/reviews?reviewsError=%s%s", ERROR2, reviewsNotFound), http.StatusSeeOther)
 		return
 	}
 
-	showCompanyReviews := []ViewGhostedReviews{}
-	for index := range reviewsByCompany {
+	showData := []ViewGhostedReviews{}
+	for index := range reviewsByInteraction {
 		var convertData ViewGhostedReviews
 
-		convertData.InteractionType = reviewsByCompany[index].InteractionType
-		convertData.ReviewRating = reviewsByCompany[index].ReviewRating
-		convertData.CreatedAt = reviewsByCompany[index].CreatedAt
+		convertData.InteractionType = reviewsByInteraction[index].InteractionType
+		convertData.ReviewRating = reviewsByInteraction[index].ReviewRating
+		convertData.CreatedAt = reviewsByInteraction[index].CreatedAt
 
 		// decrypt data
-		companyName, err := utils.Decrypt(reviewsByCompany[index].CompanyName)
+		companyName, err := utils.Decrypt(reviewsByInteraction[index].CompanyName)
 		if err != nil {
 			logs.Logs(logErr, "Error decrypting company name: "+err.Error())
 			http.Redirect(w, r, fmt.Sprintf("/reviews?companyNameError=%s%s", ERROR2, decryptCompanyNameError), http.StatusSeeOther)
@@ -124,7 +124,7 @@ func SearchCompany(w http.ResponseWriter, r *http.Request) {
 		}
 		convertData.CompanyName = string(companyName)
 
-		recruiterName, err := utils.Decrypt(reviewsByCompany[index].RecruiterName)
+		recruiterName, err := utils.Decrypt(reviewsByInteraction[index].RecruiterName)
 		if err != nil {
 			logs.Logs(logErr, "Error decrypting recruiter name: "+err.Error())
 			http.Redirect(w, r, fmt.Sprintf("/reviews?recruiterNameError=%s%s", ERROR2, decryptRecruiterNameError), http.StatusSeeOther)
@@ -132,7 +132,7 @@ func SearchCompany(w http.ResponseWriter, r *http.Request) {
 		}
 		convertData.RecruiterName = string(recruiterName)
 
-		managerName, err := utils.Decrypt(reviewsByCompany[index].ManagerName)
+		managerName, err := utils.Decrypt(reviewsByInteraction[index].ManagerName)
 		if err != nil {
 			logs.Logs(logErr, "Error decrypting manager name: "+err.Error())
 			http.Redirect(w, r, fmt.Sprintf("/reviews?managerNameError=%s%s", ERROR2, decryptManagerNameError), http.StatusSeeOther)
@@ -140,7 +140,7 @@ func SearchCompany(w http.ResponseWriter, r *http.Request) {
 		}
 		convertData.ManagerName = string(managerName)
 
-		reviewContent, err := utils.Decrypt(reviewsByCompany[index].ReviewContent)
+		reviewContent, err := utils.Decrypt(reviewsByInteraction[index].ReviewContent)
 		if err != nil {
 			logs.Logs(logErr, "Error decrypting review content: "+err.Error())
 			http.Redirect(w, r, fmt.Sprintf("/reviews?reviewContentError=%s%s", ERROR2, decryptReviewContentError), http.StatusSeeOther)
@@ -148,7 +148,7 @@ func SearchCompany(w http.ResponseWriter, r *http.Request) {
 		}
 		convertData.ReviewContent = string(reviewContent)
 
-		profileName, err := utils.Decrypt(reviewsByCompany[index].ProfileName)
+		profileName, err := utils.Decrypt(reviewsByInteraction[index].ProfileName)
 		if err != nil {
 			logs.Logs(logErr, "Error decrypting profile name: "+err.Error())
 			http.Redirect(w, r, fmt.Sprintf("/reviews?profileNameError=%s%s", ERROR2, decryptProfileNameError), http.StatusSeeOther)
@@ -156,8 +156,8 @@ func SearchCompany(w http.ResponseWriter, r *http.Request) {
 		}
 		convertData.ProfileName = string(profileName)
 
-		// add data to showCompanyReviews slice
-		showCompanyReviews = append(showCompanyReviews, convertData)
+		// add data to showData slice
+		showData = append(showData, convertData)
 	}
 
 	// handle page errors
@@ -173,7 +173,7 @@ func SearchCompany(w http.ResponseWriter, r *http.Request) {
 		Reviews []ViewGhostedReviews
 		Errors  ErrorMessages
 	}{
-		Reviews: showCompanyReviews,
+		Reviews: showData,
 		Errors: ErrorMessages{
 			ReviewsError:       reviewsError,
 			CompanyNameError:   companyNameError,

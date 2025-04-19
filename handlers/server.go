@@ -34,8 +34,8 @@ func StartHTTPServer() {
 	http.HandleFunc("/create-review", CreateReview)
 	http.HandleFunc("/reviews", ProfileReviews)
 	http.HandleFunc("/search-company", SearchCompany)
-	// http.HandleFunc("/search-interaction", SearchInteraction)
-	// http.HandleFunc("/search-rating", SearchRating)
+	http.HandleFunc("/search-interaction", SearchInteraction)
+	http.HandleFunc("/search-rating", SearchRating)
 	// http.HandleFunc("/logout", LogoutProfile)
 
 	// initialise port for application
