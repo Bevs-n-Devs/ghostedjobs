@@ -25,6 +25,7 @@ const (
 	decryptManagerNameError    = "Error+decrypting+manager+name"
 	decryptReviewContentError  = "Error+decrypting+manager+name"
 	decryptProfileNameError    = "Error+decryptng+profile+name"
+	logoutError                = "Error+logging+out+profile"
 )
 
 type ViewGhostedReviews struct {
@@ -52,4 +53,5 @@ type ErrorMessages struct {
 	ManagerNameError    string
 	ReviewContentError  string
 	ProfileNameError    string
+	LogoutError         string
 }

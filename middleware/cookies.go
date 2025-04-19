@@ -150,3 +150,51 @@ func SearchReviewRatingCSRFTokenCookie(w http.ResponseWriter, csrfToken string, 
 	})
 	return true
 }
+
+func LogoutProfileSessionCookie(w http.ResponseWriter, sessionToken string, expiryTime time.Time) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    sessionToken,
+		Expires:  expiryTime,
+		HttpOnly: true,
+		Path:     "/logout",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}
+
+func LogoutProfileCSRFTokenCookie(w http.ResponseWriter, csrfToken string, expiryTime time.Time) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    csrfToken,
+		Expires:  expiryTime,
+		HttpOnly: false,
+		Path:     "/logout",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}
+
+func DeleteProfileSessionCookie(w http.ResponseWriter) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HttpOnly: true,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}
+
+func DeleteProfileCSRFCookie(w http.ResponseWriter) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HttpOnly: false,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}

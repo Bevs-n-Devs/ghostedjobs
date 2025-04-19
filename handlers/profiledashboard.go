@@ -48,22 +48,6 @@ func ProfileDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// reviewsError := r.URL.Query().Get("reviewsError")
-	// companyNameError := r.URL.Query().Get("companyNameError")
-	// recruiterNameError := r.URL.Query().Get("recruiterNameError")
-	// managerNameError := r.URL.Query().Get("managerNameError")
-	// reviewContentError := r.URL.Query().Get("reviewContentError")
-	// profileNameError := r.URL.Query().Get("profileNameError")
-
-	// data := ErrorMessages{
-	// 	ReviewsError:       reviewsError,
-	// 	CompanyNameError:   companyNameError,
-	// 	RecruiterNameError: recruiterNameError,
-	// 	ManagerNameError:   managerNameError,
-	// 	ReviewContentError: reviewContentError,
-	// 	ProfileNameError:   profileNameError,
-	// }
-
 	// TODO! Set cookies for each available page
 	createProfileDashboardSessionCookie := middleware.ProfileDashboardSessionCookie(w, newSessionToken, newExpiryTime)
 	if !createProfileDashboardSessionCookie {
@@ -100,6 +84,19 @@ func ProfileDashboard(w http.ResponseWriter, r *http.Request) {
 	createViewReviewCSRFTokenCookie := middleware.ViewReviewCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
 	if !createViewReviewCSRFTokenCookie {
 		logs.Logs(logErr, "Error creating view review CSRF token cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCsrfCookieError), http.StatusSeeOther)
+		return
+	}
+
+	createLogoutProfileSessionCookie := middleware.LogoutProfileSessionCookie(w, newSessionToken, newExpiryTime)
+	if !createLogoutProfileSessionCookie {
+		logs.Logs(logErr, "Error creating logout profile session cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCookieError), http.StatusSeeOther)
+		return
+	}
+	createLogoutProfileCSRFTokenCookie := middleware.LogoutProfileCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
+	if !createLogoutProfileCSRFTokenCookie {
+		logs.Logs(logErr, "Error creating logout profile CSRF token cookie")
 		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCsrfCookieError), http.StatusSeeOther)
 		return
 	}

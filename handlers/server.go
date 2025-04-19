@@ -36,7 +36,7 @@ func StartHTTPServer() {
 	http.HandleFunc("/search-company", SearchCompany)
 	http.HandleFunc("/search-interaction", SearchInteraction)
 	http.HandleFunc("/search-rating", SearchRating)
-	// http.HandleFunc("/logout", LogoutProfile)
+	http.HandleFunc("/logout", LogoutProfile)
 
 	// initialise port for application
 	httpPort := os.Getenv("PORT")
