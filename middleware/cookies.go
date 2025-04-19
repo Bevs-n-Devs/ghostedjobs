@@ -78,3 +78,75 @@ func ViewReviewCSRFTokenCookie(w http.ResponseWriter, csrfToken string, expiryTi
 	})
 	return true
 }
+
+func SearchCompanySessionCookie(w http.ResponseWriter, sessionToken string, expiryTime time.Time) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    sessionToken,
+		Expires:  expiryTime,
+		HttpOnly: true,
+		Path:     "/search-company",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}
+
+func SearchCompanyCSRFTokenCookie(w http.ResponseWriter, csrfToken string, expiryTime time.Time) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    csrfToken,
+		Expires:  expiryTime,
+		HttpOnly: false,
+		Path:     "/search-company",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}
+
+func SearchInteractionTypeSessionCookie(w http.ResponseWriter, sessionToken string, expiryTime time.Time) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    sessionToken,
+		Expires:  expiryTime,
+		HttpOnly: true,
+		Path:     "/search-interaction",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}
+
+func SearchInteractionTypeCSRFTokenCookie(w http.ResponseWriter, csrfToken string, expiryTime time.Time) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    csrfToken,
+		Expires:  expiryTime,
+		HttpOnly: false,
+		Path:     "/search-interaction",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}
+
+func SearchReviewRatingSessionCookie(w http.ResponseWriter, sessionToken string, expiryTime time.Time) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    sessionToken,
+		Expires:  expiryTime,
+		HttpOnly: true,
+		Path:     "/search-rating",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}
+
+func SearchReviewRatingCSRFTokenCookie(w http.ResponseWriter, csrfToken string, expiryTime time.Time) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    csrfToken,
+		Expires:  expiryTime,
+		HttpOnly: false,
+		Path:     "/search-rating",
+		SameSite: http.SameSiteStrictMode,
+	})
+	return true
+}

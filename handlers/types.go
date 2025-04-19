@@ -19,6 +19,7 @@ const (
 	sessionCookieError         = "Error+setting+session+cookie"
 	sessionCsrfCookieError     = "Error+setting+csrf+cookie"
 	reviewsError               = "Error+getting+all+reviews"
+	reviewsNotFound            = "Review+not+found"
 	decryptCompanyNameError    = "Error+decrypting+company+name"
 	decryptRecruiterNameError  = "Error+decrypting+recruiter+name"
 	decryptManagerNameError    = "Error+decrypting+manager+name"
