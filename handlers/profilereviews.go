@@ -89,6 +89,45 @@ func ProfileReviews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	createSearchCompanySessionCookie := middleware.SearchCompanySessionCookie(w, newSessionToken, newExpiryTime)
+	if !createSearchCompanySessionCookie {
+		logs.Logs(logErr, "Error creating search company session cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCookieError), http.StatusSeeOther)
+		return
+	}
+	createSearchCompanyCSRFTokenCookie := middleware.SearchCompanyCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
+	if !createSearchCompanyCSRFTokenCookie {
+		logs.Logs(logErr, "Error creating search company CSRF token cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCsrfCookieError), http.StatusSeeOther)
+		return
+	}
+
+	createSearchInteractionTypeSessionCookie := middleware.SearchInteractionTypeSessionCookie(w, newSessionToken, newExpiryTime)
+	if !createSearchInteractionTypeSessionCookie {
+		logs.Logs(logErr, "Error creating search interaction type session cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCookieError), http.StatusSeeOther)
+		return
+	}
+	createSearchInteractionTypeCSRFTokenCookie := middleware.SearchInteractionTypeCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
+	if !createSearchInteractionTypeCSRFTokenCookie {
+		logs.Logs(logErr, "Error creating search interaction type CSRF token cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCsrfCookieError), http.StatusSeeOther)
+		return
+	}
+
+	createSearchReviewRatingSessionCookie := middleware.SearchReviewRatingSessionCookie(w, newSessionToken, newExpiryTime)
+	if !createSearchReviewRatingSessionCookie {
+		logs.Logs(logErr, "Error creating search review rating session cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCookieError), http.StatusSeeOther)
+		return
+	}
+	createSearchReviewRatingCSRFTokenCookie := middleware.SearchReviewRatingCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
+	if !createSearchReviewRatingCSRFTokenCookie {
+		logs.Logs(logErr, "Error creating search review rating CSRF token cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCsrfCookieError), http.StatusSeeOther)
+		return
+	}
+
 	// TODO: get  reviews from database
 	getAllReviews, err := db.GetAllGhostedReviews()
 	if err != nil {

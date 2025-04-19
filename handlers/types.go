@@ -18,7 +18,7 @@ const (
 	sessionNotFound            = "Session+token+not+found+for+profile"
 	sessionCookieError         = "Error+setting+session+cookie"
 	sessionCsrfCookieError     = "Error+setting+csrf+cookie"
-	reviewsError               = "Error+getting+all+reviews"
+	reviewsError               = "Error+getting+reviews"
 	decryptCompanyNameError    = "Error+decrypting+company+name"
 	decryptRecruiterNameError  = "Error+decrypting+recruiter+name"
 	decryptManagerNameError    = "Error+decrypting+manager+name"
