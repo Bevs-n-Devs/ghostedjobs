@@ -89,6 +89,19 @@ func SearchRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	createLogoutProfileSessionCookie := middleware.LogoutProfileSessionCookie(w, newSessionToken, newExpiryTime)
+	if !createLogoutProfileSessionCookie {
+		logs.Logs(logErr, "Error creating logout profile session cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCookieError), http.StatusSeeOther)
+		return
+	}
+	createLogoutProfileCSRFTokenCookie := middleware.LogoutProfileCSRFTokenCookie(w, newCsrfToken, newExpiryTime)
+	if !createLogoutProfileCSRFTokenCookie {
+		logs.Logs(logErr, "Error creating logout profile CSRF token cookie")
+		http.Redirect(w, r, fmt.Sprintf("/?authenticationError=%s%s", ERROR2, sessionCsrfCookieError), http.StatusSeeOther)
+		return
+	}
+
 	// get form data
 	err = r.ParseForm()
 	if err != nil {

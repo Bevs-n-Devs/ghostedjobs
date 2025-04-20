@@ -14,6 +14,7 @@ const (
 	profileNameAlreadyExists   = "Profile+name+already+exists.+Please+create+a+different+profile+name."
 	profileEmailAlreadyExists  = "Email+already+exists.+Only+one+profile+is+permitted+for+each+email."
 	newProfileError            = "Error+creating+new+profile"
+	emailNewProfileError       = "New+profile+created+but+failed+to+send+email+notification+for+new+profile.+Please+contact+support:+ghostedjobsuk@gmail.com"
 	errorUpdatingSessionTokens = "Error+updating+profile+session+tokens"
 	sessionNotFound            = "Session+token+not+found+for+profile"
 	sessionCookieError         = "Error+setting+session+cookie"
@@ -25,6 +26,7 @@ const (
 	decryptManagerNameError    = "Error+decrypting+manager+name"
 	decryptReviewContentError  = "Error+decrypting+manager+name"
 	decryptProfileNameError    = "Error+decryptng+profile+name"
+	logoutError                = "Error+logging+out+profile"
 )
 
 type ViewGhostedReviews struct {
@@ -52,4 +54,5 @@ type ErrorMessages struct {
 	ManagerNameError    string
 	ReviewContentError  string
 	ProfileNameError    string
+	LogoutError         string
 }

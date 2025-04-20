@@ -280,7 +280,7 @@ func GetHashEmailFromSessionToken(sessionToken string) (string, error) {
 		return "", err
 	}
 
-	logs.Logs(logDb, "Hash email retrieved successfully: "+hashEmail)
+	logs.Logs(logDb, "Hash email retrieved successfully")
 
 	return hashEmail, nil
 }
@@ -754,4 +754,26 @@ func GetAllReviewsByReviewRating(reviewRating string) ([]GhostedReviews, error) 
 	}
 
 	return reviewsList, nil
+}
+
+func Logout(hashEmail string) error {
+	if db == nil {
+		logs.Logs(logDbErr, "Database connection is not initialized")
+		return errors.New("database connection is not initialized")
+	}
+
+	query := `
+	UPDATE ghostedjobs_profile
+		SET session_token = NULL,
+			csrf_token = NULL,
+			token_expiry = NULL
+	WHERE hash_profile_email = $1;
+	`
+	_, err := db.Exec(query, hashEmail)
+	if err != nil {
+		logs.Logs(logDbErr, "Failed to logout profile: "+err.Error())
+		return err
+	}
+
+	return nil
 }

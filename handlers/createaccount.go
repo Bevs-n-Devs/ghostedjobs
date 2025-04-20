@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Bevs-n-Devs/ghostedjobs/db"
+	"github.com/Bevs-n-Devs/ghostedjobs/email"
 	"github.com/Bevs-n-Devs/ghostedjobs/logs"
 )
 
@@ -52,6 +53,12 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: Send confirmation email email to user
+	err = email.NewProfileNotificationEmail(userEmail, profileName, userPassword)
+	if err != nil {
+		logs.Logs(logErr, "Error sending new profile notification email: "+err.Error())
+		http.Redirect(w, r, fmt.Sprintf("/?internalServerError=%s%s", ERROR2, emailNewProfileError), http.StatusSeeOther)
+		return
+	}
 
 	// redirect to login page
 	logs.Logs(logInfo, "New profile created successfully")
