@@ -280,7 +280,7 @@ func GetHashEmailFromSessionToken(sessionToken string) (string, error) {
 		return "", err
 	}
 
-	logs.Logs(logDb, "Hash email retrieved successfully: "+hashEmail)
+	logs.Logs(logDb, "Hash email retrieved successfully")
 
 	return hashEmail, nil
 }
